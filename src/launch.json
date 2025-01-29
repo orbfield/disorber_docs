@@ -1,16 +1,27 @@
 {
-    "version": "0.2.0",
-    "configurations": [
-      {
-        "type": "msedge",
-        "request": "launch",
-        "name": "Launch Edge against localhost",
-        "url": "http://localhost:3000",
-        "webRoot": "${workspaceFolder}",
-        "sourceMaps": true,
-        "sourceMapPathOverrides": {
-          "webpack:///src/*": "${webRoot}/src/*"
-        }
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "msedge",
+      "request": "launch",
+      "name": "Launch Edge against localhost",
+      "url": "http://localhost:3000",
+      "webRoot": "${workspaceFolder}",
+      "sourceMaps": true,
+      "sourceMapPathOverrides": {
+        "webpack:///src/*": "${webRoot}/src/*"
       }
-    ]
-  }
+    },
+    {
+      "type": "msedge",
+      "request": "launch",
+      "name": "Launch Edge against production",
+      "url": "https://orbfield.github.io/disorber_docs",
+      "webRoot": "${workspaceFolder}/build",
+      "sourceMaps": true,
+      "sourceMapPathOverrides": {
+        "webpack:///src/*": "${webRoot}/src/*"
+      }
+    }
+  ]
+}
