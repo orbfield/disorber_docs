@@ -19,7 +19,7 @@ const Loading = () => (
   </div>
 );
 
-const router = createBrowserRouter([
+const router = createHashRouter([
   {
     path: "/",
     element: (
