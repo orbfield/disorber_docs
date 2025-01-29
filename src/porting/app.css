@@ -1,0 +1,95 @@
+/* Base styles */
+.min-h-screen {
+    min-height: 100vh;
+}
+
+.bg-gradient {
+    background: linear-gradient(to bottom right, #1a202c, #2d3748, #1a202c);
+    color: white;
+}
+
+/* Sidebar styles */
+.sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100vh;
+    z-index: 50;
+}
+
+.sidebar-expanded {
+    width: 16rem;
+}
+
+.sidebar-collapsed {
+    width: 5rem;
+}
+
+/* Main content area */
+.main-content {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    transition: margin-left 0.3s;
+}
+
+.main-content-sidebar-expanded {
+    margin-left: 16rem;
+}
+
+.main-content-sidebar-collapsed {
+    margin-left: 5rem;
+}
+
+/* Navbar styles */
+.navbar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 0;
+    z-index: 40;
+    transition: margin-left 0.3s;
+}
+
+.navbar-sidebar-expanded {
+    margin-left: 16rem;
+}
+
+.navbar-sidebar-collapsed {
+    margin-left: 5rem;
+}
+
+/* Content area */
+.content {
+    margin-top: 4rem;
+    padding: 1.5rem;
+    overflow: auto;
+}
+
+/* Navigation items */
+.nav-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    text-decoration: none;
+    color: white;
+}
+
+.nav-item:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.nav-item.active {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.nav-item-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+    margin-right: 0.75rem;
+}
+
+.nav-item-text {
+    white-space: nowrap;
+}

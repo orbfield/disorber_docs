@@ -1,0 +1,54 @@
+@inject NavigationManager NavigationManager
+@inject SidebarService SidebarService
+
+<div class="h-full bg-gradient">
+    @foreach (var item in NavItems)
+    {
+        var isActive = GetIsActive(item.Id);
+        <a href="@GetHref(item.Id)" 
+           class="nav-item @(isActive ? "active" : "")"
+           @onclick="() => NavigateToPage(item.Id)">
+            <span class="nav-item-icon oi @item.Icon" aria-hidden="true"></span>
+            @if (!SidebarService.IsSidebarCollapsed)
+            {
+                <span class="nav-item-text">@item.Text</span>
+            }
+        </a>
+    }
+</div>
+
+@code {
+    private List<NavItem> NavItems = new()
+    {
+        new NavItem { Icon = "oi-home", Text = "Home", Id = "home" },
+        new NavItem { Icon = "oi-calculator", Text = "Functions", Id = "functions" },
+        new NavItem { Icon = "oi-code", Text = "Binary", Id = "binary" },
+        new NavItem { Icon = "oi-graph", Text = "Patterns", Id = "patterns" },
+        new NavItem { Icon = "oi-book", Text = "Learning", Id = "learning" },
+        new NavItem { Icon = "oi-puzzle-piece", Text = "Practice", Id = "practice" },
+        new NavItem { Icon = "oi-cog", Text = "Settings", Id = "settings" }
+    };
+
+    private class NavItem
+    {
+        public string Icon { get; set; }
+        public string Text { get; set; }
+        public string Id { get; set; }
+    }
+
+    private string GetHref(string id)
+    {
+        return id == "home" ? "/" : $"/{id}";
+    }
+
+    private bool GetIsActive(string id)
+    {
+        var currentPath = NavigationManager.Uri.Split('/').Last();
+        return string.IsNullOrEmpty(currentPath) ? id == "home" : currentPath == id;
+    }
+
+    private void NavigateToPage(string id)
+    {
+        NavigationManager.NavigateTo(GetHref(id));
+    }
+}

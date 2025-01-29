@@ -1,0 +1,32 @@
+@using Microsoft.AspNetCore.Components.Routing
+@inherits LayoutComponentBase
+@inject NavigationManager NavigationManager
+@inject SidebarService SidebarService
+
+<div class="min-h-screen bg-gradient">
+    <div class="sidebar @(SidebarService.IsSidebarCollapsed ? "sidebar-collapsed" : "sidebar-expanded")">
+        <NavMenu />
+    </div>
+
+    <div class="main-content @(SidebarService.IsSidebarCollapsed ? "main-content-sidebar-collapsed" : "main-content-sidebar-expanded")">
+        <div class="navbar @(SidebarService.IsSidebarCollapsed ? "navbar-sidebar-collapsed" : "navbar-sidebar-expanded")">
+            <TopNav />
+        </div>
+
+        <div class="content">
+            @Body
+        </div>
+    </div>
+</div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        SidebarService.OnChange += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        SidebarService.OnChange -= StateHasChanged;
+    }
+}
