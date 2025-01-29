@@ -6,7 +6,6 @@ import {
   BinaryIcon,
   Activity,
   BookOpen,
-  Brain,
   Settings,
 } from "lucide-react";
 import Sidebar from './Sidebar';
@@ -22,11 +21,11 @@ const Layout = () => {
 
   const sideNavItems = [
     { icon: Home, text: "Home", id: "home" },
-    { icon: Calculator, text: "Functions", id: "functions" },
-    { icon: BinaryIcon, text: "Binary", id: "binary" },
-    { icon: Activity, text: "Patterns", id: "patterns" },
-    { icon: BookOpen, text: "Learning", id: "learning" },
-    { icon: Brain, text: "Practice", id: "practice" },
+    { icon: Calculator, text: "Image", id: "image" },
+    { icon: BinaryIcon, text: "Gif", id: "gif" },
+    { icon: Activity, text: "Binary", id: "binary" },
+    { icon: BookOpen, text: "Docs", id: "docs" },
+    
     { icon: Settings, text: "Settings", id: "settings" },
   ];
 

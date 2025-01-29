@@ -6,11 +6,10 @@ import { SidebarProvider } from './components/layout/SidebarContext';
 
 // Lazy load modules
 const HomePage = lazy(() => import('./modules/Home'));
-const FunctionsPage = lazy(() => import('./modules/Functions'));
+const ImagesPage = lazy(() => import('./modules/Image'));
+const GifPage = lazy(() => import('./modules/Gif'));
 const BinaryPage = lazy(() => import('./modules/Binary'));
-const PatternsPage = lazy(() => import('./modules/Patterns'));
-const LearningPage = lazy(() => import('./modules/Learning'));
-const PracticePage = lazy(() => import('./modules/Practice'));
+const DocsPage = lazy(() => import('./modules/Docs'));
 const SettingsPage = lazy(() => import('./modules/Settings'));
 
 const Loading = () => (
@@ -37,10 +36,18 @@ const router = createHashRouter([
         ),
       },
       {
-        path: "/functions",
+        path: "/image",
         element: (
           <Suspense fallback={<Loading />}>
-            <FunctionsPage />
+            <ImagesPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: "/gif",
+        element: (
+          <Suspense fallback={<Loading />}>
+            <GifPage />
           </Suspense>
         ),
       },
@@ -53,29 +60,14 @@ const router = createHashRouter([
         ),
       },
       {
-        path: "/patterns",
+        path: "/docs",
         element: (
           <Suspense fallback={<Loading />}>
-            <PatternsPage />
+            <DocsPage />
           </Suspense>
         ),
       },
-      {
-        path: "/learning",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <LearningPage />
-          </Suspense>
-        ),
-      },
-      {
-        path: "/practice",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <PracticePage />
-          </Suspense>
-        ),
-      },
+
       {
         path: "/settings",
         element: (
