@@ -1,7 +1,7 @@
 // App.jsx
 import React, { lazy, Suspense } from 'react';
 import Layout from './components/layout/Layout';
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { createHashRouter, RouterProvider } from 'react-router-dom'; 
 import { SidebarProvider } from './components/layout/SidebarContext';
 
 // Lazy load modules
