@@ -21,7 +21,7 @@ export const WindowManagementProvider = ({ children, spacing = 20 }) => {
     const constraints = getWindowTypeConstraints(windowType, windowSize, sidebarWidth);
     
     // For DISPLAY type, use the constraints-defined size
-    if (windowType === WINDOW_TYPES.DISPLAY) {
+    if (windowType === WINDOW_TYPES.DISPLAY || windowType === WINDOW_TYPES.OUTPUT) {
       return {
         x: constraints.x,
         y: constraints.y[0],
@@ -39,10 +39,18 @@ export const WindowManagementProvider = ({ children, spacing = 20 }) => {
   }, [sidebarWidth]);
 
   const registerWindow = useCallback((id, defaultSize, windowType) => {
+    console.log('Window registration:', {
+      id,
+      type: windowType,
+      size: defaultSize,
+      timestamp: new Date().toISOString()
+    });
+    
     if (windowType !== WINDOW_TYPES.WORKSPACE && 
         windowType !== WINDOW_TYPES.EDITOR && 
-        windowType !== WINDOW_TYPES.DISPLAY) {
-      console.warn('Only specific window types (WORKSPACE, EDITOR, DISPLAY) are supported');
+        windowType !== WINDOW_TYPES.DISPLAY &&
+        windowType !== WINDOW_TYPES.OUTPUT) {
+      console.warn('Only specific window types (WORKSPACE, EDITOR, DISPLAY, OUTPUT) are supported');
       return;
     }
     

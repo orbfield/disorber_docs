@@ -63,12 +63,12 @@ const BinaryBackground = ({ isCollapsed }) => {
           </div>
         ))}
       </div>
-      <style jsx>{`
+      <style>{`
         @keyframes binaryFall {
-          0% {
+          from {
             transform: translateY(-100vh);
           }
-          100% {
+          to {
             transform: translateY(100vh);
           }
         }

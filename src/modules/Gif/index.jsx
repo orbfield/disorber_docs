@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Image as ImageIcon, X } from 'lucide-react';
+import { Image as ImageIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { WindowManagementProvider } from '../../components/window/WindowManagement';
 
@@ -25,6 +25,7 @@ const ImageThumbnail = ({ src, alt, onClick }) => (
     className="relative group cursor-pointer overflow-hidden rounded-lg"
     whileHover={{ scale: 1.02 }}
     onClick={onClick}
+    style={{ cursor: 'pointer' }}
   >
     <img
       src={src}
@@ -38,13 +39,45 @@ const ImageThumbnail = ({ src, alt, onClick }) => (
 );
 
 // Full-size image display window
-const ImageDisplayWindow = ({ image, onClose }) => {
+const ImageDisplayWindow = ({ image, windowId, onClose }) => {
   const { registerWindow } = useWindowManagement();
-  const windowId = 'image-display';
 
   useEffect(() => {
-    registerWindow(windowId, null, WINDOW_TYPES.DISPLAY);
-  }, [registerWindow]);
+    // Register window immediately with default dimensions
+    registerWindow(windowId, {
+      width: 800,
+      height: 600
+    }, 'workspace');
+
+    // Then adjust size after image loads
+    const img = new Image();
+    img.onload = () => {
+      const aspectRatio = img.naturalWidth / img.naturalHeight;
+      const maxWidth = Math.min(1200, window.innerWidth * 0.8);
+      const maxHeight = Math.min(800, window.innerHeight * 0.8);
+      
+      let width = img.naturalWidth;
+      let height = img.naturalHeight;
+      
+      // Scale down if needed while maintaining aspect ratio
+      if (width > maxWidth) {
+        width = maxWidth;
+        height = width / aspectRatio;
+      }
+      if (height > maxHeight) {
+        height = maxHeight;
+        width = height * aspectRatio;
+      }
+
+      // Update window dimensions
+      registerWindow(windowId, {
+        width: Math.round(width) + 48,
+        height: Math.round(height) + 96
+      }, 'workspace');
+    };
+    
+    img.src = image.src;
+  }, [registerWindow, windowId, image.src]);
 
   return (
     <WindowWrapper
@@ -58,14 +91,17 @@ const ImageDisplayWindow = ({ image, onClose }) => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
-          className="relative w-full h-full rounded-lg overflow-hidden bg-black/50 border border-cyan-500/10"
+          className="flex-1 rounded-lg overflow-hidden bg-black/50 border border-cyan-500/10 flex items-center justify-center h-full cursor-move"
         >
           <img
             src={image.src}
             alt={image.alt}
-            className="w-full h-full object-contain"
+            className="max-w-full max-h-full object-contain select-none rounded-lg"
           />
         </motion.div>
+        <div className="text-center mt-2">
+          <span className="text-xs text-cyan-400/50">disorber.com</span>
+        </div>
       </div>
     </WindowWrapper>
   );
@@ -107,7 +143,20 @@ const images = [
 
 // Main Gallery component
 const Gallery = () => {
-  const [selectedImage, setSelectedImage] = useState(null);
+  const [openWindows, setOpenWindows] = useState(new Map());
+
+  const handleImageClick = (image, index) => {
+    const windowId = `image-display-${index}`;
+    setOpenWindows(prev => new Map(prev).set(windowId, image));
+  };
+
+  const handleCloseWindow = (windowId) => {
+    setOpenWindows(prev => {
+      const next = new Map(prev);
+      next.delete(windowId);
+      return next;
+    });
+  };
 
   return (
     <div className="space-y-8">
@@ -125,21 +174,23 @@ const Gallery = () => {
           {images.map((image, index) => (
             <ImageThumbnail
               key={index}
-            src={image.thumbSrc}
-            alt={image.alt}
-              onClick={() => setSelectedImage(image)}
+              src={image.thumbSrc}
+              alt={image.alt}
+              onClick={() => handleImageClick(image, index)}
             />
           ))}
         </div>
       </motion.div>
 
-      {/* Full-size Display Window */}
-      {selectedImage && (
+      {/* Full-size Display Windows */}
+      {Array.from(openWindows.entries()).map(([windowId, image]) => (
         <ImageDisplayWindow
-          image={selectedImage}
-          onClose={() => setSelectedImage(null)}
+          key={windowId}
+          windowId={windowId}
+          image={image}
+          onClose={() => handleCloseWindow(windowId)}
         />
-      )}
+      ))}
     </div>
   );
 };

@@ -3,7 +3,8 @@ import { StreamManager } from '../../modules/Binary/core/streamManager';
 export const WINDOW_TYPES = {
   WORKSPACE: 'workspace',
   EDITOR: 'editor',
-  DISPLAY: 'display'
+  DISPLAY: 'display',
+  OUTPUT: 'output'
 };
 
 export const WINDOW_CONSTRAINTS = {
@@ -37,6 +38,11 @@ export const getWindowTypeConstraints = (windowType, size, sidebarWidth) => {
         y: [WINDOW_CONSTRAINTS.TOP_MARGIN, innerHeight - WINDOW_CONSTRAINTS.DISPLAY.HEIGHT],
         width: WINDOW_CONSTRAINTS.DISPLAY.WIDTH,
         height: WINDOW_CONSTRAINTS.DISPLAY.HEIGHT
+      };
+    case WINDOW_TYPES.OUTPUT:
+      return {
+        x: [sidebarWidth + WINDOW_CONSTRAINTS.SIDE_SPACING, innerWidth - size.width - WINDOW_CONSTRAINTS.SIDE_SPACING],
+        y: [WINDOW_CONSTRAINTS.TOP_MARGIN, innerHeight - size.height]
       };
     default:
       return {

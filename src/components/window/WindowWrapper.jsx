@@ -40,10 +40,10 @@ const DraggableComponent = ({ id, icon: Icon, title }) => {
 const Window = ({ children, position, dimensions }) => {
   const style = {
     position: 'absolute',
-    width: dimensions.width,
-    height: dimensions.height,
-    left: position.x,
-    top: position.y,
+    width: dimensions.width || 'auto',
+    height: dimensions.height || 'auto',
+    left: position.x || 0,
+    top: position.y || 0,
     touchAction: 'none'
   };
 
@@ -61,22 +61,25 @@ const WindowWrapper = ({
   id = 'window',
 }) => {
   const { windows, updateWindowPosition } = useWindowManagement();
-  const windowData = windows.get(id);
   
+  const handleDragEnd = useCallback((event) => {
+    if (!event.delta) return;
+    const windowData = windows.get(id);
+    if (!windowData) return;
+    
+    const { x: deltaX, y: deltaY } = event.delta;
+    updateWindowPosition(id, {
+      x: windowData.position.x + deltaX,
+      y: windowData.position.y + deltaY
+    });
+  }, [id, windows, updateWindowPosition]);
+
+  const windowData = windows.get(id);
   if (!windowData) {
     return null; // Don't render until window is registered
   }
 
   const { position, size } = windowData;
-
-  const handleDragEnd = useCallback((event) => {
-    if (!event.delta) return;
-    const { x: deltaX, y: deltaY } = event.delta;
-    updateWindowPosition(id, {
-      x: position.x + deltaX,
-      y: position.y + deltaY
-    });
-  }, [id, position.x, position.y, updateWindowPosition]);
 
   return (
     <Window

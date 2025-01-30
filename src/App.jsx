@@ -18,7 +18,8 @@ const Loading = () => (
   </div>
 );
 
-const router = createHashRouter([
+const router = createHashRouter(
+  [
   {
     path: "/",
     element: (
@@ -78,7 +79,18 @@ const router = createHashRouter([
       },
     ],
   },
-]);
+  ],
+  {
+    future: {
+      v7_startTransition: true,
+      v7_relativeSplatPath: true,
+      v7_fetcherPersist: true,
+      v7_normalizeFormMethod: true,
+      v7_partialHydration: true,
+      v7_skipActionErrorRevalidation: true
+    }
+  }
+);
 
 const App = () => {
   return <RouterProvider router={router} />;
