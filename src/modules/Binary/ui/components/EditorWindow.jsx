@@ -4,8 +4,8 @@ import { AnimatePresence } from 'framer-motion';
 import { MotionButton } from '../../../../components/ui/buttons/MotionButton';
 import KeyboardControls from '../KeyboardControls';
 import TouchControls from '../TouchControls';
-import WindowWrapper from './WindowWrapper';
-import { useWindowManagement } from './WindowManagement';
+import WindowWrapper from '../../../../components/window/WindowWrapper';
+import { useWindowManagement } from '../../../../components/window/WindowManagement';
 
 const EditorWindow = ({ 
   streams,

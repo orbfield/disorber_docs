@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
 import { Play, Pause, Plus, Minus, Monitor, LineChart, Layers } from 'lucide-react';
 import { MotionButton } from '../../../../components/ui/buttons/MotionButton';
-import WindowWrapper from './WindowWrapper';
-import { useWindowManagement } from './WindowManagement';
+import WindowWrapper from '../../../../components/window/WindowWrapper';
+import { useWindowManagement } from '../../../../components/window/WindowManagement';
 
 const WorkspaceWindow = ({ 
   isRunning, 

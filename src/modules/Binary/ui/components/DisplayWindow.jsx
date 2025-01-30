@@ -1,9 +1,9 @@
 import React, { useEffect, memo, useMemo } from 'react';
 import { Monitor } from 'lucide-react';
 import { motion } from 'framer-motion';
-import WindowWrapper from './WindowWrapper';
-import { useWindowManagement } from './WindowManagement';
-import { WINDOW_TYPES } from './windowConstants';
+import WindowWrapper from '../../../../components/window/WindowWrapper';
+import { useWindowManagement } from '../../../../components/window/WindowManagement';
+import { WINDOW_TYPES } from '../../../../components/window/windowConstants';
 
 const BinaryDigit = memo(({ digit, zeroColor }) => (
   <span style={{ color: digit === '0' ? zeroColor : '#4B5563' }}>
