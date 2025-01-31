@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { useWindowContext } from '../WindowContext';
+import { useWindowContext } from '../index.jsx';
 
 export const WindowWrapper = ({ 
   id,

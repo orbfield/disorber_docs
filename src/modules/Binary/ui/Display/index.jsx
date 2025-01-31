@@ -1,8 +1,8 @@
 import React, { memo, useMemo } from 'react';
 import { Monitor } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { WindowWrapper } from '../WindowWrapper';
-import { useWindowContext } from '../WindowContext';
+import { WindowWrapper } from '../../../../components/window/wrapper/index';
+import { useWindowContext } from '../../../../components/window/index';
 
 const DEFAULT_POSITION = { x: 100, y: 100 };
 

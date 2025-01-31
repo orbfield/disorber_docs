@@ -4,7 +4,7 @@ import { BinaryProvider, useBinary } from '../core/BinaryContext';
 import { Workspace } from './Workspace';
 import { Trace } from './Trace';
 import { Display } from './Display';
-import { WindowProvider } from './WindowContext/index';
+import { WindowProvider } from '../../../components/window/index';
 
 const BinaryContent = () => {
   const {

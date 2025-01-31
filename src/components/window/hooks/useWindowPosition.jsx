@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useSidebar } from '../../../../../components/layout/SidebarContext';
+import { useSidebar } from '../../layout/SidebarContext';
 import { useWindowContext } from '../index';
 
 const SIDEBAR_WIDTH = 240; // Standard sidebar width in pixels

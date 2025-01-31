@@ -1,8 +1,8 @@
 import React, { memo } from 'react';
 import { Settings } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { WindowWrapper } from '../WindowWrapper';
-import { useWindowContext } from '../WindowContext';
+import { WindowWrapper } from '../../../../components/window/wrapper/index';
+import { useWindowContext } from '../../../../components/window/index';
 import KeyboardControls from '../KeyboardControls';
 import TouchControls from '../TouchControls';
 

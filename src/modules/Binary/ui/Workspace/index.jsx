@@ -1,8 +1,8 @@
 import React from 'react';
 import { Layout } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { WindowWrapper } from '../WindowWrapper';
-import { useWindowContext } from '../WindowContext';
+import { WindowWrapper } from '../../../../components/window/wrapper/index';
+import { useWindowContext } from '../../../../components/window/index';
 
 const DEFAULT_POSITION = { x: 700, y: 100 };
 
