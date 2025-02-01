@@ -1,18 +1,42 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu } from 'lucide-react';
-import SideNavItem from './SideNavItem';
-import BinaryBackground from '../../ui/backgrounds/BinaryBackground';
+import TreeNode from './TreeNode';
+import CollapsedNavigation from './CollapsedNavigation';
+import ActionButtons from './ActionButtons';
+import SearchExplorer from './SearchExplorer';
+import { createEnhancedNavItems, createInitialTreeData } from './navigationData';
 
 const Sidebar = ({ isSidebarCollapsed, setSidebarCollapsed, sideNavItems, activeSection, onNavigation }) => {
+  const [treeData, setTreeData] = useState([]);
+
+  useEffect(() => {
+    const enhancedNavItems = createEnhancedNavItems(sideNavItems);
+    const initialData = createInitialTreeData(enhancedNavItems, activeSection);
+    setTreeData(initialData);
+  }, [sideNavItems, activeSection]);
+
+  const toggleNode = (targetNode) => {
+    const updateNodes = (nodes) => {
+      return nodes.map(node => {
+        if (node === targetNode) {
+          return { ...node, isExpanded: !node.isExpanded };
+        }
+        if (node.children?.length) {
+          return { ...node, children: updateNodes(node.children) };
+        }
+        return node;
+      });
+    };
+    setTreeData(updateNodes(treeData));
+  };
+
   return (
     <motion.div
       layout
       className={`h-screen bg-gray-900/50 backdrop-blur-sm px-4 py-6 flex flex-col gap-2 relative overflow-hidden
         ${isSidebarCollapsed ? "w-20" : "w-64"}`}
     >
-      <BinaryBackground isCollapsed={isSidebarCollapsed} />
-
       <div className="flex items-center justify-between mb-8">
         <AnimatePresence>
           {!isSidebarCollapsed && (
@@ -33,22 +57,35 @@ const Sidebar = ({ isSidebarCollapsed, setSidebarCollapsed, sideNavItems, active
           whileTap={{ scale: 0.9 }}
           transition={{ duration: 0.3 }}
         >
-          <Menu className="w-6 h-6" />
+          <Menu className="w-6 h-6 text-white" />
         </motion.button>
       </div>
 
-      <div className="flex flex-col gap-2">
-        {sideNavItems.map((item) => (
-          <div key={item.id} onClick={() => onNavigation(item.id)}>
-            <SideNavItem
-              icon={item.icon}
-              text={item.text}
-              isCollapsed={isSidebarCollapsed}
-              isActive={activeSection === item.id}
-            />
-          </div>
-        ))}
-      </div>
+      {isSidebarCollapsed ? (
+        <CollapsedNavigation 
+          sideNavItems={sideNavItems}
+          activeSection={activeSection}
+          onNavigation={onNavigation}
+        />
+      ) : (
+        <>
+          <ActionButtons />
+          <SearchExplorer />
+          <nav className="flex-1 overflow-y-auto">
+            <ul>
+              {treeData.map((node, index) => (
+                <TreeNode
+                  key={index}
+                  node={node}
+                  onToggle={toggleNode}
+                  isCollapsed={isSidebarCollapsed}
+                  onNavigation={onNavigation}
+                />
+              ))}
+            </ul>
+          </nav>
+        </>
+      )}
     </motion.div>
   );
 };

@@ -49,7 +49,7 @@ const images = [
   }
 ];
 
-export default function GifIndex() {
+export default function GalleryIndex() {
   return (
     <WindowProvider>
       <div>

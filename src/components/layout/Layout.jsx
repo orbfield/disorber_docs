@@ -22,7 +22,7 @@ const Layout = () => {
   const sideNavItems = [
     { icon: Home, text: "Home", id: "home" },
     { icon: Calculator, text: "Image", id: "image" },
-    { icon: BinaryIcon, text: "Gif", id: "gif" },
+    { icon: BinaryIcon, text: "Gallery", id: "gallery" },
     { icon: Activity, text: "Binary", id: "binary" },
     { icon: BookOpen, text: "Docs", id: "docs" },
     

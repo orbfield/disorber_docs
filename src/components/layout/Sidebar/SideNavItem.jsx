@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const SideNavItem = ({ icon: Icon, text, isCollapsed, isActive }) => {
   const [isHovered, setIsHovered] = useState(false);
-
+  
   return (
     <motion.div
       className={`flex items-center gap-4 p-3 rounded-xl cursor-pointer backdrop-blur-sm ${
