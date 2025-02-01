@@ -10,11 +10,47 @@ import { createEnhancedNavItems, createInitialTreeData } from './navigationData'
 const Sidebar = ({ isSidebarCollapsed, setSidebarCollapsed, sideNavItems, activeSection, onNavigation }) => {
   const [treeData, setTreeData] = useState([]);
 
+  // Load tree state from localStorage on mount
   useEffect(() => {
+    const savedExpandedState = localStorage.getItem('sidebarExpandedState');
     const enhancedNavItems = createEnhancedNavItems(sideNavItems);
     const initialData = createInitialTreeData(enhancedNavItems, activeSection);
-    setTreeData(initialData);
+    
+    if (savedExpandedState) {
+      // Restore expanded state while keeping fresh data
+      const expandedNodes = JSON.parse(savedExpandedState);
+      const restoreExpandedState = (nodes) => {
+        return nodes.map(node => ({
+          ...node,
+          isExpanded: expandedNodes.includes(node.text),
+          children: node.children ? restoreExpandedState(node.children) : []
+        }));
+      };
+      setTreeData(restoreExpandedState(initialData));
+    } else {
+      setTreeData(initialData);
+    }
   }, [sideNavItems, activeSection]);
+
+  // Save only expanded state to localStorage
+  useEffect(() => {
+    if (treeData.length > 0) {
+      const getExpandedNodes = (nodes) => {
+        return nodes.reduce((acc, node) => {
+          if (node.isExpanded) {
+            acc.push(node.text);
+          }
+          if (node.children?.length) {
+            acc.push(...getExpandedNodes(node.children));
+          }
+          return acc;
+        }, []);
+      };
+      
+      const expandedNodes = getExpandedNodes(treeData);
+      localStorage.setItem('sidebarExpandedState', JSON.stringify(expandedNodes));
+    }
+  }, [treeData]);
 
   const toggleNode = (targetNode) => {
     const updateNodes = (nodes) => {
