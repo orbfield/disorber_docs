@@ -13,18 +13,18 @@ const BinaryBackground = ({ isCollapsed }) => {
   ];
   
   // Increase columns for higher density
-  const columns = 99;
+  const columns = 0;
   
   // Memoize the column configurations to prevent recalculation on re-renders
   const columnConfigs = useMemo(() => {
     return [...Array(columns)].map((_, columnIndex) => {
       const pattern = patterns[columnIndex % patterns.length];
       const basePosition = (columnIndex / columns) * 100;
-      const offset = (Math.random() - 0.5) * 2; // Random offset between -1 and 1
+      const offset = (Math.random() - 0.1) * 5; // Random offset between -1 and 1
       const leftPosition = `${basePosition + offset}%`;
       
       // Create variation in speeds but keep them close enough for visual coherence
-      const speed = 54 + Math.random() * 6; // Speed between 12-16s
+      const speed = 44 + Math.random() * 22; // Speed between 12-16s
       const delay = Math.random() * -16; // Smaller delay range for better distribution
       
       // Repeat the pattern enough times to cover full height
