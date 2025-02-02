@@ -5,6 +5,7 @@ const BackgroundCanvas = ({ children, showGrid = true }) => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [scale, setScale] = useState(1);
 
   // Debug state changes
   useEffect(() => {
@@ -29,16 +30,33 @@ const BackgroundCanvas = ({ children, showGrid = true }) => {
     }
   }, [position]);
 
-  // Prevent all default scroll behavior
+  // Handle zoom with mouse wheel
+  const handleWheel = React.useCallback((e) => {
+    e.preventDefault();
+    const delta = e.deltaY;
+    const rect = canvasRef.current.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
+    // Calculate zoom factor based on wheel delta
+    const zoomFactor = delta > 0 ? 0.9 : 1.1;
+    const newScale = Math.min(Math.max(scale * zoomFactor, 0.1), 5);
+
+    // Calculate new position to zoom towards mouse
+    const x = mouseX - (mouseX - position.x) * (newScale / scale);
+    const y = mouseY - (mouseY - position.y) * (newScale / scale);
+
+    setScale(newScale);
+    setPosition({ x, y });
+  }, [scale, position]);
+
   useEffect(() => {
-    const preventDefault = (e) => e.preventDefault();
     const canvas = canvasRef.current;
-    
     if (canvas) {
-      canvas.addEventListener('wheel', preventDefault, { passive: false });
-      return () => canvas.removeEventListener('wheel', preventDefault);
+      canvas.addEventListener('wheel', handleWheel, { passive: false });
+      return () => canvas.removeEventListener('wheel', handleWheel);
     }
-  }, []);
+  }, [handleWheel]);
 
   const handleMouseMove = React.useCallback((e) => {
     if (isDragging) {
@@ -77,7 +95,7 @@ const BackgroundCanvas = ({ children, showGrid = true }) => {
   return (
     <div
       ref={canvasRef}
-      className="w-full h-full overflow-hidden cursor-grab active:cursor-grabbing relative"
+      className={`w-full h-full overflow-hidden relative select-none ${isDragging ? 'cursor-grabbing animate-grab' : 'cursor-grab animate-release'}`}
       onMouseDown={handleStart}
       onTouchStart={handleStart}
       style={{
@@ -112,9 +130,10 @@ const BackgroundCanvas = ({ children, showGrid = true }) => {
       <div
         className="min-h-full"
         style={{
-          transform: `translate(${position.x}px, ${position.y}px)`,
+          transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
           transformOrigin: '0 0',
-          transition: isDragging ? 'none' : 'transform 0.1s'
+          transition: isDragging ? 'none' : 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          willChange: 'transform'
         }}
       >
         {children}
