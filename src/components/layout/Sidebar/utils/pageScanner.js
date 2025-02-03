@@ -1,4 +1,3 @@
-// Instead of using fs/promises and path, we'll define our pages structure directly
 const defaultIcons = {
   home: 'Home',
   image: 'Image',
@@ -8,64 +7,74 @@ const defaultIcons = {
   settings: 'Settings'
 };
 
-// This function simulates the directory scanning in a browser-compatible way
 export const scanPagesDirectory = async () => {
-  // You'll need to define your pages structure here
-  // This is an example structure - modify according to your actual pages
-  const pagesStructure = [
-    {
-      name: 'home',
-      hasIndex: true,
-      subDirectories: []
-    },
-    {
-      name: 'docs',
-      hasIndex: true,
-      subDirectories: [
-        {
-          name: 'getting-started',
-          hasIndex: true,
-          subDirectories: []
-        },
-        {
-          name: 'api',
-          hasIndex: true,
-          subDirectories: []
-        }
-      ]
-    },
-    // Add more pages as needed
-  ];
+  const pageContext = require.context('../../../../Pages', true, /index\.(js|jsx|ts|tsx)$/);
+  const paths = pageContext.keys();
+  
+  const tree = [];
+  const processedDirs = new Set();
 
-  // Convert the structure to the required tree format
-  const buildTree = (pages) => {
-    return pages
-      .filter(page => page.hasIndex)
-      .map(page => ({
-        id: page.name.toLowerCase(),
-        text: page.name,
-        icon: defaultIcons[page.name.toLowerCase()] || 'Folder',
+  // First pass: process Home if it exists
+  paths.forEach(path => {
+    const parts = path.replace(/^\.\//, '').split('/');
+    parts.pop(); // Remove 'index.jsx'
+    
+    if (parts[0]?.toLowerCase() === 'home') {
+      tree.push({
+        id: 'home',
+        text: 'Home',
+        icon: defaultIcons['home'],
         isExpanded: false,
-        children: page.subDirectories ? buildTree(page.subDirectories) : []
-      }));
-  };
+        children: []
+      });
+      processedDirs.add('home');
+    }
+  });
 
-  return buildTree(pagesStructure);
+  // Second pass: process all other paths
+  paths.forEach(path => {
+    const parts = path.replace(/^\.\//, '').split('/');
+    parts.pop(); // Remove 'index.jsx'
+    
+    let currentLevel = tree;
+    let currentPath = '';
+
+    parts.forEach(part => {
+      currentPath = currentPath ? `${currentPath}/${part}` : part;
+      
+      // Skip if it's Home or already processed
+      if (part.toLowerCase() === 'home' || processedDirs.has(currentPath)) {
+        return;
+      }
+      
+      processedDirs.add(currentPath);
+      
+      const existingNode = currentLevel.find(node => node.id === part.toLowerCase());
+      if (!existingNode) {
+        const newNode = {
+          id: part.toLowerCase(),
+          text: part.charAt(0).toUpperCase() + part.slice(1),
+          icon: defaultIcons[part.toLowerCase()] || 'Folder',
+          isExpanded: false,
+          children: []
+        };
+        currentLevel.push(newNode);
+        currentLevel = newNode.children;
+      } else {
+        currentLevel = existingNode.children;
+      }
+    });
+  });
+
+  return tree;
 };
 
-// Optional: Add a function to dynamically import page components
 export const getPageComponent = async (pagePath) => {
   try {
-    // Use dynamic import to load the page component
-    // You'll need to adjust the path according to your project structure
-    const module = await import(`@/pages/${pagePath}/index.jsx`);
+    const module = await import(`../../../../Pages/${pagePath}/index`);
     return module.default;
   } catch (error) {
     console.error(`Failed to load page component: ${pagePath}`, error);
     return null;
   }
 };
-
-// Example usage:
-// const pageTree = await scanPagesDirectory();
-// console.log(pageTree);
