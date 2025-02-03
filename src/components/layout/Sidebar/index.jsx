@@ -70,10 +70,10 @@ const Sidebar = ({ isSidebarCollapsed, setSidebarCollapsed, sideNavItems, active
   return (
     <motion.div
       layout
-      className={`h-screen bg-gray-900/50 backdrop-blur-sm px-4 py-6 flex flex-col gap-2 relative overflow-hidden
+      className={`h-screen bg-gray-900/50 backdrop-blur-sm px-4 pt-2 pb-6 flex flex-col gap-1 relative overflow-hidden
         ${isSidebarCollapsed ? "w-20" : "w-64"}`}
     >
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-1">
         <AnimatePresence>
           {!isSidebarCollapsed && (
             <motion.h2

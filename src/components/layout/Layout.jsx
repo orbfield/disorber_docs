@@ -45,7 +45,7 @@ const Layout = () => {
       </BackgroundCanvas>
 
       {/* UI Overlay - Fixed Elements */}
-      <div className="fixed left-0 top-0 h-screen z-50">
+      <div className="fixed left-0 top-0 h-screen z-40">
         <Sidebar
           isSidebarCollapsed={isSidebarCollapsed}
           setSidebarCollapsed={setIsSidebarCollapsed}
@@ -55,10 +55,7 @@ const Layout = () => {
         />
       </div>
       
-      <div 
-        className="fixed top-0 right-0 left-0 z-40" 
-        style={{ marginLeft: isSidebarCollapsed ? '5rem' : '16rem' }}
-      >
+      <div className="fixed top-0 right-0 left-0 z-50">
         <Navbar />
       </div>
     </div>
