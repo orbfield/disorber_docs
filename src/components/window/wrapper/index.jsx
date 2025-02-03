@@ -74,11 +74,9 @@ export const WindowWrapper = ({
       }}
       onDragEnd={(e, info) => {
         e.stopPropagation();
-        // Get the current scale from the parent BackgroundCanvas
-        const canvasScale = windowRef.current?.closest('[data-canvas-scale]')?.dataset.canvasScale || 1;
-        // Adjust the position based on the canvas scale
-        const newX = windowData.position.x + (info.offset.x / parseFloat(canvasScale));
-        const newY = windowData.position.y + (info.offset.y / parseFloat(canvasScale));
+        // Simply update position with the raw offset
+        const newX = windowData.position.x + info.offset.x;
+        const newY = windowData.position.y + info.offset.y;
         updateWindowPosition(id, { x: newX, y: newY });
       }}
       className={`absolute window-draggable ${className}`}
