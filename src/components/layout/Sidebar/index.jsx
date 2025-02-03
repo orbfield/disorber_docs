@@ -1,72 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu } from 'lucide-react';
-import TreeNode from './TreeNode';
-import CollapsedNavigation from './CollapsedNavigation';
 import ActionButtons from './ActionButtons';
 import SearchExplorer from './SearchExplorer';
-import { createEnhancedNavItems, createInitialTreeData } from './navigationData';
+import SideNavigation from './SideNavigation';
 
-const Sidebar = ({ isSidebarCollapsed, setSidebarCollapsed, sideNavItems, activeSection, onNavigation }) => {
-  const [treeData, setTreeData] = useState([]);
-
-  // Load tree state from localStorage on mount
-  useEffect(() => {
-    const savedExpandedState = localStorage.getItem('sidebarExpandedState');
-    const enhancedNavItems = createEnhancedNavItems(sideNavItems);
-    const initialData = createInitialTreeData(enhancedNavItems, activeSection);
-    
-    if (savedExpandedState) {
-      // Restore expanded state while keeping fresh data
-      const expandedNodes = JSON.parse(savedExpandedState);
-      const restoreExpandedState = (nodes) => {
-        return nodes.map(node => ({
-          ...node,
-          isExpanded: expandedNodes.includes(node.text),
-          children: node.children ? restoreExpandedState(node.children) : []
-        }));
-      };
-      setTreeData(restoreExpandedState(initialData));
-    } else {
-      setTreeData(initialData);
-    }
-  }, [sideNavItems, activeSection]);
-
-  // Save only expanded state to localStorage
-  useEffect(() => {
-    if (treeData.length > 0) {
-      const getExpandedNodes = (nodes) => {
-        return nodes.reduce((acc, node) => {
-          if (node.isExpanded) {
-            acc.push(node.text);
-          }
-          if (node.children?.length) {
-            acc.push(...getExpandedNodes(node.children));
-          }
-          return acc;
-        }, []);
-      };
-      
-      const expandedNodes = getExpandedNodes(treeData);
-      localStorage.setItem('sidebarExpandedState', JSON.stringify(expandedNodes));
-    }
-  }, [treeData]);
-
-  const toggleNode = (targetNode) => {
-    const updateNodes = (nodes) => {
-      return nodes.map(node => {
-        if (node === targetNode) {
-          return { ...node, isExpanded: !node.isExpanded };
-        }
-        if (node.children?.length) {
-          return { ...node, children: updateNodes(node.children) };
-        }
-        return node;
-      });
-    };
-    setTreeData(updateNodes(treeData));
-  };
-
+const Sidebar = ({ isSidebarCollapsed, setSidebarCollapsed, activeSection, onNavigation }) => {
   return (
     <motion.div
       layout
@@ -97,31 +36,17 @@ const Sidebar = ({ isSidebarCollapsed, setSidebarCollapsed, sideNavItems, active
         </motion.button>
       </div>
 
-      {isSidebarCollapsed ? (
-        <CollapsedNavigation 
-          sideNavItems={sideNavItems}
-          activeSection={activeSection}
-          onNavigation={onNavigation}
-        />
-      ) : (
+      {!isSidebarCollapsed && (
         <>
           <ActionButtons />
           <SearchExplorer />
-          <nav className="flex-1 overflow-y-auto">
-            <ul>
-              {treeData.map((node, index) => (
-                <TreeNode
-                  key={index}
-                  node={node}
-                  onToggle={toggleNode}
-                  isCollapsed={isSidebarCollapsed}
-                  onNavigation={onNavigation}
-                />
-              ))}
-            </ul>
-          </nav>
         </>
       )}
+      <SideNavigation
+        isCollapsed={isSidebarCollapsed}
+        activeSection={activeSection}
+        onNavigation={onNavigation}
+      />
     </motion.div>
   );
 };

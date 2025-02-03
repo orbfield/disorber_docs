@@ -19,15 +19,7 @@ const Layout = () => {
   const location = useLocation();
  
   const activeSection = location.pathname.slice(1) || "home";
-  const sideNavItems = [
-    { icon: Home, text: "Home", id: "home" },
-    { icon: Calculator, text: "Image", id: "image" },
-    { icon: BinaryIcon, text: "Gallery", id: "gallery" },
-    { icon: Activity, text: "Binary", id: "binary" },
-    { icon: BookOpen, text: "Docs", id: "docs" },
-    { icon: Settings, text: "Settings", id: "settings" },
-  ];
-
+  
   const handleNavigation = (id) => {
     navigate(id === "home" ? "/" : `/${id}`);
   };
@@ -49,7 +41,6 @@ const Layout = () => {
         <Sidebar
           isSidebarCollapsed={isSidebarCollapsed}
           setSidebarCollapsed={setIsSidebarCollapsed}
-          sideNavItems={sideNavItems}
           activeSection={activeSection}
           onNavigation={handleNavigation}
         />

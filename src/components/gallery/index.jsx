@@ -78,6 +78,15 @@ function ImageThumbnail({ src, alt, onClick }) {
 
 function GalleryWindow({ id, imageUrl, toggleVisibility }) {
   const { bringToFront } = useWindowContext();
+  
+  const getImageName = (url) => {
+    try {
+      const urlParts = url.split('/');
+      return decodeURIComponent(urlParts[urlParts.length - 1]);
+    } catch (e) {
+      return 'Image';
+    }
+  };
   return (
     <WindowWrapper
       id={id}
@@ -85,7 +94,7 @@ function GalleryWindow({ id, imageUrl, toggleVisibility }) {
       onClick={() => bringToFront(id)}
     >
       <div 
-        className="flex items-center justify-between p-2 border-b border-gray-700 bg-gray-900 flex-t-lg"
+        className="flex items-center justify-between py-1 px-2 border-b border-gray-700 bg-gray-900 flex-t-lg"
         style={{ cursor: 'move' }}
         onClick={(e) => {
           e.stopPropagation();
@@ -94,7 +103,7 @@ function GalleryWindow({ id, imageUrl, toggleVisibility }) {
       >
         <div className="flex items-center gap-2 px-2">
           <Layout className="w-4 h-4 text-cyan-500" />
-          <h2 className="text-white font-semibold">Image Preview</h2>
+          <h2 className="text-white font-semibold text-sm truncate max-w-[280px]">{getImageName(imageUrl)}</h2>
         </div>
         <button
           onClick={toggleVisibility}
@@ -107,13 +116,13 @@ function GalleryWindow({ id, imageUrl, toggleVisibility }) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.3 }}
-        className="p-4 h-full bg-black/10 border border-cyan-500/10"
+        className="h-full bg-black/10"
         onClick={(e) => {
           e.stopPropagation();
           bringToFront(id);
         }}
       >
-        <img src={imageUrl} alt="" className="max-w-full h-auto" />
+        <img src={imageUrl} alt="" className="w-full h-full object-contain" />
       </motion.div>
     </WindowWrapper>
   );
