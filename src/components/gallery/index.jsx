@@ -5,10 +5,17 @@ import { useWindowContext } from '../window/index';
 import { WindowWrapper } from '../window/wrapper/index';
 
 export function Gallery({ images = [{ thumb: '', full: '', alt: '' }] }) {
-  const { registerWindow, toggleWindowVisibility } = useWindowContext();
+  const { registerWindow, toggleWindowVisibility, windows } = useWindowContext();
   const [activeWindows, setActiveWindows] = useState(new Set());
 
   const handleOpenWindow = (id, imageUrl) => {
+    const existingWindow = windows[id];
+    if (existingWindow && !existingWindow.isVisible) {
+      // If window exists but is hidden, just toggle visibility
+      toggleWindowVisibility(id);
+      return;
+    }
+    
     if (!activeWindows.has(id)) {
       const width = 400;
       const height = 400;
