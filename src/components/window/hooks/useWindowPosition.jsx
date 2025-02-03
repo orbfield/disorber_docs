@@ -19,10 +19,15 @@ export const useWindowPosition = (windowId, defaultPosition) => {
     const currentWindow = windows[windowId];
     if (!currentWindow) return;
 
-    const offset = isSidebarCollapsed ? -SIDEBAR_WIDTH : 0;
+    // Calculate the difference in sidebar width
+    const previousOffset = isSidebarCollapsed ? 0 : SIDEBAR_WIDTH;
+    const newOffset = isSidebarCollapsed ? -SIDEBAR_WIDTH : 0;
+    const offsetDiff = newOffset - previousOffset;
+
+    // Update position relative to current position, not initial position
     const newPosition = {
-      x: currentWindow.initialPosition.x + offset,
-      y: currentWindow.initialPosition.y
+      x: currentWindow.position.x + offsetDiff,
+      y: currentWindow.position.y
     };
 
     updateWindowPosition(windowId, newPosition);

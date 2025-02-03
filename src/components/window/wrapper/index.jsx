@@ -43,37 +43,29 @@ export const WindowWrapper = ({
       ref={windowRef}
       drag
       dragMomentum={false}
-      dragConstraints={dragConstraints}
-      initial={initialPosition}
-      animate={{
-        x: windowData.position.x,
-        y: windowData.position.y,
-        zIndex: windowData.zIndex
-      }}
-      onDragStart={() => bringToFront(id)}
-      onDrag={(_, info) => {
-        const newX = windowData.position.x + info.offset.x;
-        const newY = windowData.position.y + info.offset.y;
-        
-        if (!checkBounds(newX, newY)) {
-          updateWindowPosition(id, windowData.initialPosition);
-        }
-      }}
-      onDragEnd={(_, info) => {
-        const newX = windowData.position.x + info.offset.x;
-        const newY = windowData.position.y + info.offset.y;
-        
-        if (checkBounds(newX, newY)) {
-          updateWindowPosition(id, { x: newX, y: newY });
-        } else {
-          updateWindowPosition(id, windowData.initialPosition);
-        }
-      }}
-      className={`absolute ${className}`}
+      dragElastic={0}
+      dragTransition={{ power: 0 }}
+      initial={false}
       style={{
         display: windowData.isVisible ? 'block' : 'none',
         touchAction: 'none'
       }}
+      animate={{ 
+        x: windowData.position.x * 1.0, // Ensure 1:1 movement, no parallax
+        y: windowData.position.y * 1.0, // Ensure 1:1 movement, no parallax
+        zIndex: windowData.zIndex
+      }}
+      onDragStart={(e) => {
+        e.stopPropagation();
+        bringToFront(id);
+      }}
+      onDragEnd={(e, info) => {
+        e.stopPropagation();
+        const newX = windowData.position.x + info.offset.x;
+        const newY = windowData.position.y + info.offset.y;
+        updateWindowPosition(id, { x: newX, y: newY });
+      }}
+      className={`absolute window-draggable ${className}`}
     >
       {children}
     </motion.div>

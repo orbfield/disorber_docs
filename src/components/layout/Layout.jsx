@@ -34,7 +34,7 @@ const Layout = () => {
 
   return (
     <div className="w-screen h-screen overflow-hidden relative">
-      <BackgroundCanvas>
+      <BackgroundCanvas resetKey={location.pathname}>
         <div className="min-h-screen text-white">
           <div className="min-h-screen flex flex-col">
             <div className="p-6">

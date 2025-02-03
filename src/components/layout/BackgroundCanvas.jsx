@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 
-const BackgroundCanvas = ({ children, showGrid = true }) => {
+const BackgroundCanvas = ({ children, showGrid = true, resetKey }) => {
   const canvasRef = useRef(null);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -13,25 +13,30 @@ const BackgroundCanvas = ({ children, showGrid = true }) => {
   }, [isDragging, position, dragStart]);
 
   const handleStart = React.useCallback((e) => {
-    // Allow dragging to start anywhere within the canvas container
-    const canvasElement = canvasRef.current;
-    if (canvasElement && canvasElement.contains(e.target)) {
-      e.preventDefault();
-      e.stopPropagation();
-      
-      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-      
-      setIsDragging(true);
-      setDragStart({
-        x: clientX - position.x,
-        y: clientY - position.y
-      });
+    // Don't start dragging if we clicked on a window
+    if (e.target.closest('.window-draggable')) {
+      return;
     }
+
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    
+    setIsDragging(true);
+    setDragStart({
+      x: clientX - position.x,
+      y: clientY - position.y
+    });
   }, [position]);
 
   // Handle zoom with mouse wheel
   const handleWheel = React.useCallback((e) => {
+    if (e.target.closest('.window-draggable')) {
+      return;
+    }
+
     e.preventDefault();
     const delta = e.deltaY;
     const rect = canvasRef.current.getBoundingClientRect();
@@ -58,24 +63,35 @@ const BackgroundCanvas = ({ children, showGrid = true }) => {
     }
   }, [handleWheel]);
 
+  // Reset position and scale when resetKey changes
+  useEffect(() => {
+    setPosition({ x: 0, y: 0 });
+    setScale(1);
+  }, [resetKey]);
+
   const handleMouseMove = React.useCallback((e) => {
-    if (isDragging) {
-      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-      setPosition({
-        x: clientX - dragStart.x,
-        y: clientY - dragStart.y
-      });
+    if (!isDragging) return;
+
+    // Don't drag if we're over a window
+    if (e.target.closest('.window-draggable')) {
+      setIsDragging(false);
+      return;
     }
-  }, [isDragging, dragStart, position]);
+
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    
+    setPosition({
+      x: clientX - dragStart.x,
+      y: clientY - dragStart.y
+    });
+  }, [isDragging, dragStart]);
 
   const handleMouseUp = React.useCallback(() => {
     setIsDragging(false);
   }, []);
 
   useEffect(() => {
-    if (!canvasRef.current) return;
-
     window.addEventListener('mouseup', handleMouseUp);
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('touchend', handleMouseUp);
@@ -99,6 +115,7 @@ const BackgroundCanvas = ({ children, showGrid = true }) => {
       onMouseDown={handleStart}
       onTouchStart={handleStart}
       style={{
+        pointerEvents: isDragging ? 'all' : 'auto',
         background: `
           repeating-linear-gradient(45deg,
             rgb(17, 24, 39) 0%,
@@ -132,7 +149,7 @@ const BackgroundCanvas = ({ children, showGrid = true }) => {
         style={{
           transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
           transformOrigin: '0 0',
-          transition: isDragging ? 'none' : 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          transition: 'none',
           willChange: 'transform'
         }}
       >
