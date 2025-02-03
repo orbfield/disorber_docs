@@ -77,14 +77,20 @@ function ImageThumbnail({ src, alt, onClick }) {
 }
 
 function GalleryWindow({ id, imageUrl, toggleVisibility }) {
+  const { bringToFront } = useWindowContext();
   return (
     <WindowWrapper
       id={id}
       className="bg-gray-800/70 backdrop-blur-lg border border-cyan-500/20 flex-lg shadow-lg"
+      onClick={() => bringToFront(id)}
     >
       <div 
         className="flex items-center justify-between p-2 border-b border-gray-700 bg-gray-900 flex-t-lg"
         style={{ cursor: 'move' }}
+        onClick={(e) => {
+          e.stopPropagation();
+          bringToFront(id);
+        }}
       >
         <div className="flex items-center gap-2 px-2">
           <Layout className="w-4 h-4 text-cyan-500" />
@@ -102,6 +108,10 @@ function GalleryWindow({ id, imageUrl, toggleVisibility }) {
         animate={{ opacity: 1 }}
         transition={{ delay: 0.3 }}
         className="p-4 h-full bg-black/10 border border-cyan-500/10"
+        onClick={(e) => {
+          e.stopPropagation();
+          bringToFront(id);
+        }}
       >
         <img src={imageUrl} alt="" className="max-w-full h-auto" />
       </motion.div>
