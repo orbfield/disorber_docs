@@ -45,15 +45,28 @@ export const WindowWrapper = ({
       dragMomentum={false}
       dragElastic={0}
       dragTransition={{ power: 0 }}
-      initial={false}
       style={{
         display: windowData.isVisible ? 'block' : 'none',
         touchAction: 'none'
       }}
+      initial={{ 
+        x: windowData.position.x,
+        y: windowData.position.y,
+        scale: 0.95,
+        opacity: 0
+      }}
       animate={{ 
-        x: windowData.position.x * 1.0, // Ensure 1:1 movement, no parallax
-        y: windowData.position.y * 1.0, // Ensure 1:1 movement, no parallax
+        x: windowData.position.x,
+        y: windowData.position.y,
+        scale: 1,
+        opacity: 1,
         zIndex: windowData.zIndex
+      }}
+      transition={{
+        type: "spring",
+        stiffness: 500,
+        damping: 30,
+        opacity: { duration: 0.1 }
       }}
       onDragStart={(e) => {
         e.stopPropagation();
@@ -61,8 +74,11 @@ export const WindowWrapper = ({
       }}
       onDragEnd={(e, info) => {
         e.stopPropagation();
-        const newX = windowData.position.x + info.offset.x;
-        const newY = windowData.position.y + info.offset.y;
+        // Get the current scale from the parent BackgroundCanvas
+        const canvasScale = windowRef.current?.closest('[data-canvas-scale]')?.dataset.canvasScale || 1;
+        // Adjust the position based on the canvas scale
+        const newX = windowData.position.x + (info.offset.x / parseFloat(canvasScale));
+        const newY = windowData.position.y + (info.offset.y / parseFloat(canvasScale));
         updateWindowPosition(id, { x: newX, y: newY });
       }}
       className={`absolute window-draggable ${className}`}

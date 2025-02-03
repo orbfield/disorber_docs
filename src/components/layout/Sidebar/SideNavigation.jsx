@@ -45,7 +45,7 @@ const NavItem = ({ node, isCollapsed, isActive, onToggle, onNavigation }) => {
       <div className={`flex items-center gap-1 ${isCollapsed ? 'justify-center w-full' : ''}`} style={{ paddingLeft: !isCollapsed ? '8px' : '0px' }}>
         {!isCollapsed && hasChildren && (
           <div 
-            className="w-4 h-4 flex items-center justify-center cursor-pointer hover:bg-black/30 rounded-sm"
+            className="w-4 h-4 flex items-center justify-center cursor-pointer hover:bg-black/20 rounded-sm"
             onClick={handleArrowClick}
           >
             {node.isExpanded ? (

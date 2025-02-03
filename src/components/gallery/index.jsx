@@ -12,8 +12,11 @@ export function Gallery({ images = [{ thumb: '', full: '', alt: '' }] }) {
     if (!activeWindows.has(id)) {
       const width = 400;
       const height = 400;
-      const x = Math.max(0, Math.random() * (window.innerWidth - width));
-      const y = Math.max(0, Math.random() * (window.innerHeight - height));
+      // Get the current canvas scale
+      const canvasScale = document.querySelector('[data-canvas-scale]')?.dataset.canvasScale || 1;
+      // Adjust the random position based on the canvas scale
+      const x = Math.max(0, (Math.random() * (window.innerWidth - width)) / parseFloat(canvasScale));
+      const y = Math.max(0, (Math.random() * (window.innerHeight - height)) / parseFloat(canvasScale));
       
       registerWindow(id, {
         x, y, width, height,
@@ -87,6 +90,7 @@ function GalleryWindow({ id, imageUrl, toggleVisibility }) {
       return 'Image';
     }
   };
+
   return (
     <WindowWrapper
       id={id}
@@ -112,10 +116,7 @@ function GalleryWindow({ id, imageUrl, toggleVisibility }) {
           ×
         </button>
       </div>
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.3 }}
+      <div 
         className="h-full bg-black/10"
         onClick={(e) => {
           e.stopPropagation();
@@ -123,7 +124,7 @@ function GalleryWindow({ id, imageUrl, toggleVisibility }) {
         }}
       >
         <img src={imageUrl} alt="" className="w-full h-full object-contain" />
-      </motion.div>
+      </div>
     </WindowWrapper>
   );
 }

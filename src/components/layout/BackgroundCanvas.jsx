@@ -152,6 +152,7 @@ const BackgroundCanvas = ({ children, showGrid = true, resetKey }) => {
           transition: 'none',
           willChange: 'transform'
         }}
+        data-canvas-scale={scale}
       >
         {children}
       </div>
