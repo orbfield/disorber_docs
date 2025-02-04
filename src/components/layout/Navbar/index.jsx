@@ -32,15 +32,15 @@ const Navbar = () => {
             : 'hover:bg-gray-800/50 text-gray-300'
         }`}
         onClick={() => toggleMenu(index)}
-        whileHover={{ y: -1 }}
-        whileTap={{ scale: 0.97 }}
+        whileTap={{ scale: 0.95 }}
       >
         {label}
       </motion.button>
       {activeMenu === index && (
         <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.1 }}
           className="absolute top-full left-0 min-w-[200px] bg-gray-800/90 backdrop-blur-sm shadow-lg rounded-b-lg overflow-hidden"
         >
           {children}
@@ -56,8 +56,7 @@ const Navbar = () => {
     return (
       <motion.button
         className="w-full px-4 py-2 text-sm text-left text-gray-300 hover:bg-gray-700/50 transition-colors"
-        whileHover={{ x: 2 }}
-        whileTap={{ scale: 0.97 }}
+        whileTap={{ scale: 0.95 }}
       >
         {label}
       </motion.button>
