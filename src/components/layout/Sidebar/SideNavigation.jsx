@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Home, Image, Binary, BookOpen, Settings, Folder, ChevronRight, ChevronDown } from 'lucide-react';
-import { scanPagesDirectory } from './utils/pageScanner';
+import { useNav } from './NavContext';
 
 const icons = {
   Home,
@@ -96,43 +96,7 @@ const NavTree = ({ nodes, isCollapsed, activeSection, onToggle, onNavigation }) 
 };
 
 const SideNavigation = ({ isCollapsed = false, activeSection = '', onNavigation = () => {} }) => {
-  const [navTree, setNavTree] = useState([]);
-
-  useEffect(() => {
-    const loadNavTree = async () => {
-      try {
-        const tree = await scanPagesDirectory();
-        setNavTree(tree);
-      } catch (error) {
-        console.error('Failed to load navigation tree:', error);
-        setNavTree([
-          {
-            id: 'home',
-            text: 'Home',
-            icon: 'Home',
-            isExpanded: false,
-            children: []
-          }
-        ]);
-      }
-    };
-    loadNavTree();
-  }, []);
-
-  const toggleNode = (targetNode) => {
-    const updateNodes = (nodes) => {
-      return nodes.map(node => {
-        if (node === targetNode) {
-          return { ...node, isExpanded: !node.isExpanded };
-        }
-        if (node.children?.length) {
-          return { ...node, children: updateNodes(node.children) };
-        }
-        return node;
-      });
-    };
-    setNavTree(updateNodes(navTree));
-  };
+  const { navTree, toggleNode } = useNav();
 
   return (
     <nav className={`h-full overflow-y-auto py-1 ${isCollapsed ? 'w-14' : 'w-64'}`}>

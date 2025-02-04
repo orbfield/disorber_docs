@@ -1,12 +1,14 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
+import { NavProvider } from './NavContext';
 import { Menu } from 'lucide-react';
-import SearchExplorer from './SearchExplorer';
+import SearchSite from './SearchSite';
 import SideNavigation from './SideNavigation';
 
 const Sidebar = ({ isSidebarCollapsed, setSidebarCollapsed, activeSection, onNavigation }) => {
   return (
-    <motion.div
+    <NavProvider>
+      <motion.div
       layout
       transition={{ duration: 0.15 }}
       className={`h-screen bg-gray-900/50 backdrop-blur-sm px-1 pt-1 pb-6 flex flex-col gap-0.5 relative overflow-hidden
@@ -15,7 +17,7 @@ const Sidebar = ({ isSidebarCollapsed, setSidebarCollapsed, activeSection, onNav
       <div className={`flex items-center mb-0.5 ${isSidebarCollapsed ? "justify-center" : "justify-between"}`}>
         {!isSidebarCollapsed && (
           <div className="flex-grow mr-2">
-            <SearchExplorer />
+            <SearchSite />
           </div>
         )}
         <motion.button
@@ -33,7 +35,8 @@ const Sidebar = ({ isSidebarCollapsed, setSidebarCollapsed, activeSection, onNav
         activeSection={activeSection}
         onNavigation={onNavigation}
       />
-    </motion.div>
+      </motion.div>
+    </NavProvider>
   );
 };
 
