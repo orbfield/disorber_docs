@@ -69,7 +69,7 @@ const Navbar = () => {
       ref={navRef}
       className="fixed top-0 right-0 h-8 bg-gray-900/50 backdrop-blur-sm flex justify-between items-center px-4 z-50 shadow-sm"
       style={{ 
-        left: isSidebarCollapsed ? '5rem' : '16rem',
+        left: isSidebarCollapsed ? '4rem' : '16rem',
         transition: 'left 0.2s ease-in-out'
       }}
       initial={{ opacity: 0, y: -20 }}

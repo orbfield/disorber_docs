@@ -74,7 +74,6 @@ export const WindowWrapper = ({
       }}
       onDragEnd={(e, info) => {
         e.stopPropagation();
-        // Simply update position with the raw offset
         const newX = windowData.position.x + info.offset.x;
         const newY = windowData.position.y + info.offset.y;
         updateWindowPosition(id, { x: newX, y: newY });

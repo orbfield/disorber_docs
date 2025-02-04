@@ -34,7 +34,7 @@ const NavItem = ({ node, isCollapsed, isActive, onToggle, onNavigation }) => {
 
   return (
     <div
-      className={`flex items-center px-1 py-0.5 cursor-pointer text-gray-300 hover:bg-black/10 ${
+      className={`flex items-center cursor-pointer text-gray-300 hover:bg-black/10 ${
         isActive ? 'bg-black/20 text-white' : ''
       }`}
       onMouseEnter={() => setIsHovered(true)}
@@ -42,10 +42,10 @@ const NavItem = ({ node, isCollapsed, isActive, onToggle, onNavigation }) => {
       onClick={handleTitleClick}
       style={{ fontSize: '13px' }}
     >
-      <div className={`flex items-center gap-1 ${isCollapsed ? 'justify-center w-full' : ''}`} style={{ paddingLeft: !isCollapsed ? '8px' : '0px' }}>
+      <div className={`flex items-center gap-1 py-1.5 ${isCollapsed ? 'justify-center w-10 mx-auto' : 'px-1.5'}`}>
         {!isCollapsed && hasChildren && (
           <div 
-            className="w-4 h-4 flex items-center justify-center cursor-pointer hover:bg-black/20 rounded-sm"
+            className="w-5 h-5 flex items-center justify-center cursor-pointer hover:bg-black/20 rounded-sm"
             onClick={handleArrowClick}
           >
             {node.isExpanded ? (
@@ -135,7 +135,7 @@ const SideNavigation = ({ isCollapsed = false, activeSection = '', onNavigation 
   };
 
   return (
-    <nav className={`h-full overflow-y-auto py-1 ${isCollapsed ? 'w-12' : 'w-64'}`}>
+    <nav className={`h-full overflow-y-auto py-1 ${isCollapsed ? 'w-14' : 'w-64'}`}>
       <NavTree
         nodes={navTree}
         isCollapsed={isCollapsed}
