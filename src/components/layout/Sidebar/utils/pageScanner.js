@@ -52,11 +52,12 @@ export const scanPagesDirectory = async () => {
       const existingNode = currentLevel.find(node => node.id === part.toLowerCase());
       if (!existingNode) {
         const newNode = {
-          id: part.toLowerCase(),
+          id: currentPath.toLowerCase().replace(/\s+/g, '-'),
           text: part.charAt(0).toUpperCase() + part.slice(1),
           icon: defaultIcons[part.toLowerCase()] || 'Folder',
           isExpanded: false,
-          children: []
+          children: [],
+          path: currentPath.toLowerCase().replace(/\s+/g, '-')
         };
         currentLevel.push(newNode);
         currentLevel = newNode.children;

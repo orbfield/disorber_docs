@@ -20,8 +20,8 @@ const Layout = () => {
  
   const activeSection = location.pathname.slice(1) || "home";
   
-  const handleNavigation = (id) => {
-    navigate(id === "home" ? "/" : `/${id}`);
+  const handleNavigation = (id, path) => {
+    navigate(id === "home" ? "/" : `/${path}`);
   };
 
   return (

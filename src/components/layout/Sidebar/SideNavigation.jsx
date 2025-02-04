@@ -24,7 +24,7 @@ const NavItem = ({ node, isCollapsed, isActive, onToggle, onNavigation }) => {
   const handleTitleClick = (e) => {
     e.stopPropagation();
     if (node.id) {
-      onNavigation(node.id);
+      onNavigation(node.id, node.path || node.id);
       // Only expand if not already expanded
       if (hasChildren && !node.isExpanded) {
         onToggle(node);

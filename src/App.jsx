@@ -7,7 +7,8 @@ import { SidebarProvider } from './components/layout/SidebarContext';
 // Lazy load modules
 const HomePage = lazy(() => import('./modules/Home'));
 const ImagesPage = lazy(() => import('./modules/Image'));
-const GalleryPage = lazy(() => import('./modules/Gallery'));
+const GalleryPage = lazy(() => import('./Pages/Gallery'));
+const HilbertBellPage = lazy(() => import('./Pages/Gallery/HilbertBell'));
 const BinaryPage = lazy(() => import('./modules/Binary'));
 const DocsPage = lazy(() => import('./modules/Docs'));
 const SettingsPage = lazy(() => import('./modules/Settings'));
@@ -49,6 +50,14 @@ const router = createHashRouter(
         element: (
           <Suspense fallback={<Loading />}>
             <GalleryPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: "/gallery/HilbertBell",
+        element: (
+          <Suspense fallback={<Loading />}>
+            <HilbertBellPage />
           </Suspense>
         ),
       },
