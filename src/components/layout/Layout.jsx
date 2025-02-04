@@ -28,7 +28,7 @@ const Layout = () => {
     <div className="w-screen h-screen overflow-hidden relative">
       <BackgroundCanvas resetKey={location.pathname}>
         <div className="min-h-screen text-white">
-          <div className="min-h-screen flex flex-col">
+          <div className={`min-h-screen flex flex-col ${isSidebarCollapsed ? "ml-16" : "ml-64"} pt-8 transition-[margin]`}>
             <div className="p-6">
               <Outlet />
             </div>
