@@ -1,7 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu } from 'lucide-react';
-import ActionButtons from './ActionButtons';
 import SearchExplorer from './SearchExplorer';
 import SideNavigation from './SideNavigation';
 
@@ -13,18 +12,11 @@ const Sidebar = ({ isSidebarCollapsed, setSidebarCollapsed, activeSection, onNav
         ${isSidebarCollapsed ? "w-16" : "w-64"}`}
     >
       <div className={`flex items-center mb-0.5 ${isSidebarCollapsed ? "justify-center" : "justify-between"}`}>
-        <AnimatePresence>
-          {!isSidebarCollapsed && (
-            <motion.h2
-              className="text-xl font-bold bg-gradient-to-r from-green-400 to-cyan-500 bg-clip-text text-transparent"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-            >
-              disorber
-            </motion.h2>
-          )}
-        </AnimatePresence>
+        {!isSidebarCollapsed && (
+          <div className="flex-grow mr-2">
+            <SearchExplorer />
+          </div>
+        )}
         <motion.button
           onClick={() => setSidebarCollapsed(!isSidebarCollapsed)}
           className="py-1.5 px-2 hover:bg-gray-800/30 rounded-lg flex items-center justify-center w-10"
@@ -35,13 +27,6 @@ const Sidebar = ({ isSidebarCollapsed, setSidebarCollapsed, activeSection, onNav
           <Menu className="w-5 h-5 text-white" />
         </motion.button>
       </div>
-
-      {!isSidebarCollapsed && (
-        <>
-          <ActionButtons />
-          <SearchExplorer />
-        </>
-      )}
       <SideNavigation
         isCollapsed={isSidebarCollapsed}
         activeSection={activeSection}
