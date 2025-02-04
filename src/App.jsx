@@ -5,7 +5,7 @@ import { createHashRouter, RouterProvider } from 'react-router-dom';
 import { SidebarProvider } from './components/layout/SidebarContext';
 
 // Lazy load modules
-const HomePage = lazy(() => import('./modules/Home'));
+const HomePage = lazy(() => import('./Pages/Home'));
 const ImagesPage = lazy(() => import('./modules/Image'));
 const GalleryPage = lazy(() => import('./Pages/Gallery'));
 const HilbertBellPage = lazy(() => import('./Pages/Gallery/HilbertBell'));
