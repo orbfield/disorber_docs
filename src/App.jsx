@@ -9,6 +9,7 @@ const HomePage = lazy(() => import('./modules/Home'));
 const ImagesPage = lazy(() => import('./modules/Image'));
 const GalleryPage = lazy(() => import('./Pages/Gallery'));
 const HilbertBellPage = lazy(() => import('./Pages/Gallery/HilbertBell'));
+const HilbertBellTopPage = lazy(() => import('./Pages/Gallery/HilbertBell/Top'));
 const BinaryPage = lazy(() => import('./modules/Binary'));
 const DocsPage = lazy(() => import('./modules/Docs'));
 const SettingsPage = lazy(() => import('./modules/Settings'));
@@ -54,10 +55,18 @@ const router = createHashRouter(
         ),
       },
       {
-        path: "/gallery/HilbertBell",
+        path: "/gallery/hilbertbell",
         element: (
           <Suspense fallback={<Loading />}>
             <HilbertBellPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: "/gallery/hilbertbell/top",
+        element: (
+          <Suspense fallback={<Loading />}>
+            <HilbertBellTopPage />
           </Suspense>
         ),
       },
