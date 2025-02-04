@@ -34,8 +34,8 @@ const NavItem = ({ node, isCollapsed, isActive, onToggle, onNavigation }) => {
 
   return (
     <div
-      className={`flex items-center cursor-pointer text-gray-300 hover:bg-black/10 ${
-        isActive ? 'bg-black/20 text-white' : ''
+      className={`flex items-center cursor-pointer text-gray-300 hover:bg-gray-800/50 transition-colors ${
+        isActive ? 'bg-gray-800/80 text-white' : ''
       }`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -45,7 +45,7 @@ const NavItem = ({ node, isCollapsed, isActive, onToggle, onNavigation }) => {
       <div className={`flex items-center gap-1 py-1.5 ${isCollapsed ? 'justify-center w-10 mx-auto' : 'px-1.5'}`}>
         {!isCollapsed && hasChildren && (
           <div 
-            className="w-5 h-5 flex items-center justify-center cursor-pointer hover:bg-black/20 rounded-sm"
+            className="w-5 h-5 flex items-center justify-center cursor-pointer hover:bg-gray-800/50 rounded-sm transition-colors"
             onClick={handleArrowClick}
           >
             {node.isExpanded ? (
