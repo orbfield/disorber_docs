@@ -3,15 +3,15 @@ import { Gallery } from '../../components/gallery/index.jsx';
 import { WindowProvider } from '../../components/window/index.jsx';
 
 // Import images
-import thumb02 from '../../media/hilbert-bell/top/1-0.2-300.gif';
+import thumb02 from '../../media/hilbert-bell/top/1-0.2-50.gif';
 import full02 from '../../media/hilbert-bell/top/1-0.2-1000.gif';
-import thumb04 from '../../media/hilbert-bell/top/1-0.4-300.gif';
+import thumb04 from '../../media/hilbert-bell/top/1-0.4-50.gif';
 import full04 from '../../media/hilbert-bell/top/1-0.4-1000.gif';
-import thumb06 from '../../media/hilbert-bell/top/1-0.6-300.gif';
+import thumb06 from '../../media/hilbert-bell/top/1-0.6-50.gif';
 import full06 from '../../media/hilbert-bell/top/1-0.6-1000.gif';
-import thumb08 from '../../media/hilbert-bell/top/1-0.8-300.gif';
+import thumb08 from '../../media/hilbert-bell/top/1-0.8-50.gif';
 import full08 from '../../media/hilbert-bell/top/1-0.8-1000.gif';
-import thumb09 from '../../media/hilbert-bell/top/1-0.9-300.gif';
+import thumb09 from '../../media/hilbert-bell/top/1-0.9-50.gif';
 import full09 from '../../media/hilbert-bell/top/1-0.9-1000.gif';
 
 
@@ -52,7 +52,7 @@ const images = [
 export default function GalleryIndex() {
   return (
     <WindowProvider>
-      <div>
+      <div className="flex flex-col items-center gap-4">
         <Gallery
           images={images.map(item => ({
             thumb: item.thumbSrc,
@@ -60,6 +60,12 @@ export default function GalleryIndex() {
             alt: item.alt
           }))}
         />
+        <a 
+          href="/gallery/hilbert-bell" 
+          className="text-blue-500 hover:text-blue-600 transition-colors duration-200 mt-4"
+        >
+          View More Hilbert Bell Animations →
+        </a>
       </div>
     </WindowProvider>
   );
