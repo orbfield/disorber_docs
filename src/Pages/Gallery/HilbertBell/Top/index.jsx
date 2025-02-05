@@ -3,15 +3,15 @@ import { Gallery } from '../../../../components/gallery/index.jsx';
 import { WindowProvider } from '../../../../components/window/index.jsx';
 
 // Import images
-import thumb02 from '../../../../media/hilbert-bell/top/1-0.2-thumb.gif';
+import thumb02 from '../../../../media/hilbert-bell/top/1-0.2-300.gif';
 import full02 from '../../../../media/hilbert-bell/top/1-0.2-1000.gif';
-import thumb04 from '../../../../media/hilbert-bell/top/1-0.4-thumb.gif';
+import thumb04 from '../../../../media/hilbert-bell/top/1-0.4-300.gif';
 import full04 from '../../../../media/hilbert-bell/top/1-0.4-1000.gif';
-import thumb06 from '../../../../media/hilbert-bell/top/1-0.6-thumb.gif';
+import thumb06 from '../../../../media/hilbert-bell/top/1-0.6-200.gif';
 import full06 from '../../../../media/hilbert-bell/top/1-0.6-1000.gif';
-import thumb08 from '../../../../media/hilbert-bell/top/1-0.8-thumb.gif';
+import thumb08 from '../../../../media/hilbert-bell/top/1-0.8-300.gif';
 import full08 from '../../../../media/hilbert-bell/top/1-0.8-1000.gif';
-import thumb09 from '../../../../media/hilbert-bell/top/1-0.9-thumb.gif';
+import thumb09 from '../../../../media/hilbert-bell/top/1-0.9-300.gif';
 import full09 from '../../../../media/hilbert-bell/top/1-0.9-1000.gif';
 
 
