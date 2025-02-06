@@ -1,14 +1,42 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Layout } from 'lucide-react';
+import { Layout, Folder } from 'lucide-react';
+import PropTypes from 'prop-types';
 import { useWindowContext } from '../window/index';
 import { WindowWrapper } from '../window/wrapper/index';
+import { useNavigate } from 'react-router-dom';
 
-export function Gallery({ images = [{ thumb: '', full: '', alt: '' }] }) {
+/**
+ * @typedef {Object} GalleryImage
+ * @property {string} thumb - URL of the thumbnail image
+ * @property {string} full - URL of the full-size image
+ * @property {string} [alt] - Alternative text for the image
+ * @property {boolean} [isDirectory] - Whether this image represents a directory
+ * @property {string} [directoryId] - ID of the directory if this is a directory preview
+ */
+
+/**
+ * Gallery component that displays a grid of images with popup window functionality
+ * @param {Object} props
+ * @param {GalleryImage[]} [props.images=[]] - Array of image objects to display
+ * @returns {JSX.Element} Gallery component
+ */
+export function Gallery({ images = [] }) {
   const { registerWindow, toggleWindowVisibility, windows } = useWindowContext();
   const [activeWindows, setActiveWindows] = useState(new Set());
+  const navigate = useNavigate();
 
-  const handleOpenWindow = (id, imageUrl) => {
+  /**
+   * Handles opening a new window or navigating to a directory
+   * @param {string} id - Window identifier
+   * @param {Object} image - Image object with full URL and directory info
+   */
+  const handleOpenWindow = (id, image) => {
+    if (image.isDirectory) {
+      navigate(`/gallery/${image.directoryId}`);
+      return;
+    }
+
     const existingWindow = windows[id];
     if (existingWindow && !existingWindow.isVisible) {
       // If window exists but is hidden, just toggle visibility
@@ -46,7 +74,8 @@ export function Gallery({ images = [{ thumb: '', full: '', alt: '' }] }) {
             key={idx}
             src={img.thumb}
             alt={img.alt || ''}
-            onClick={() => handleOpenWindow(`gallery-window-${idx}`, img.full)}
+            isDirectory={img.isDirectory}
+            onClick={() => handleOpenWindow(`gallery-window-${idx}`, img)}
           />
         ))}
       </div>
@@ -67,7 +96,16 @@ export function Gallery({ images = [{ thumb: '', full: '', alt: '' }] }) {
   );
 }
 
-function ImageThumbnail({ src, alt, onClick }) {
+/**
+ * Image thumbnail component with hover effects
+ * @param {Object} props
+ * @param {string} props.src - Source URL of the thumbnail image
+ * @param {string} props.alt - Alternative text for the image
+ * @param {boolean} [props.isDirectory] - Whether this thumbnail represents a directory
+ * @param {() => void} props.onClick - Click handler for the thumbnail
+ * @returns {JSX.Element} ImageThumbnail component
+ */
+function ImageThumbnail({ src, alt, isDirectory, onClick }) {
   return (
     <motion.div
       className="relative group cursor-pointer overflow-hidden rounded-lg"
@@ -80,15 +118,33 @@ function ImageThumbnail({ src, alt, onClick }) {
         className="w-full h-48 object-cover transition-transform duration-200 group-hover:scale-105"
       />
       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
-        <span className="text-white text-sm">View Full Size</span>
+        <div className="flex items-center gap-2">
+          {isDirectory && <Folder className="w-4 h-4" />}
+          <span className="text-white text-sm">
+            {isDirectory ? 'Open Directory' : 'View Full Size'}
+          </span>
+        </div>
       </div>
     </motion.div>
   );
 }
 
+/**
+ * Gallery window component that displays a full-size image in a draggable window
+ * @param {Object} props
+ * @param {string} props.id - Unique identifier for the window
+ * @param {string} props.imageUrl - URL of the full-size image
+ * @param {() => void} props.toggleVisibility - Function to toggle window visibility
+ * @returns {JSX.Element} GalleryWindow component
+ */
 function GalleryWindow({ id, imageUrl, toggleVisibility }) {
   const { bringToFront } = useWindowContext();
   
+  /**
+   * Extracts the image filename from a URL
+   * @param {string} url - The full image URL
+   * @returns {string} The extracted filename or 'Image' if extraction fails
+   */
   const getImageName = (url) => {
     try {
       const urlParts = url.split('/');
@@ -135,5 +191,30 @@ function GalleryWindow({ id, imageUrl, toggleVisibility }) {
     </WindowWrapper>
   );
 }
+
+Gallery.propTypes = {
+  images: PropTypes.arrayOf(
+    PropTypes.shape({
+      thumb: PropTypes.string.isRequired,
+      full: PropTypes.string.isRequired,
+      alt: PropTypes.string,
+      isDirectory: PropTypes.bool,
+      directoryId: PropTypes.string
+    })
+  )
+};
+
+ImageThumbnail.propTypes = {
+  src: PropTypes.string.isRequired,
+  alt: PropTypes.string.isRequired,
+  isDirectory: PropTypes.bool,
+  onClick: PropTypes.func.isRequired
+};
+
+GalleryWindow.propTypes = {
+  id: PropTypes.string.isRequired,
+  imageUrl: PropTypes.string.isRequired,
+  toggleVisibility: PropTypes.func.isRequired
+};
 
 export default Gallery;

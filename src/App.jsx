@@ -48,14 +48,16 @@ const App = () => {
               </SidebarProvider>
             </NavProvider>
           ),
-          children: [{
-            path: "/gallery/:path/*",
-            element: (
-              <Suspense fallback={<Loading />}>
-                <DynamicGalleryPage />
-              </Suspense>
-            )
-          }]
+          children: [
+            {
+              path: "/gallery/*",
+              element: (
+                <Suspense fallback={<Loading />}>
+                  <DynamicGalleryPage />
+                </Suspense>
+              )
+            }
+          ]
         }];
 
         const newRouter = createHashRouter(routes, {

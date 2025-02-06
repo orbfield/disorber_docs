@@ -51,9 +51,17 @@ const NavItem = ({ node, isCollapsed, isActive, onToggle }) => {
     
     try {
       if (node.id) {
-        const navigationPath = node.type === 'gif' 
-          ? `/gallery/${node.path}`
-          : node.id === "home" ? "/" : `/${node.path || node.id}`;
+        let navigationPath;
+        if (node.id === "home") {
+          navigationPath = "/";
+        } else if (node.id === "gallery") {
+          navigationPath = "/gallery/root"; // Default path for gallery root
+        } else if (node.path && (node.type || node.children)) {
+          // If it has a path and is either a media file or a directory, route through gallery
+          navigationPath = `/gallery/${node.path}`;
+        } else {
+          navigationPath = `/${node.path || node.id}`;
+        }
         
         navigate(navigationPath);
         

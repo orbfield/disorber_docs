@@ -11,11 +11,78 @@ import { RESOLUTIONS } from '../config/imageResolutions';
  * @param {string} targetPath - Target path to filter files
  * @returns {Array} Filtered media files
  */
-const extractMediaFiles = (nodes, targetPath) => {
+/**
+ * Finds all GIF files in a directory and its subdirectories
+ * @param {Array} nodes - Directory tree nodes
+ * @returns {Array} All GIF files found
+ */
+const findAllGifFiles = (nodes) => {
   return nodes.flatMap(node => {
-    if (node.path.startsWith(targetPath)) {
-      return node.type ? [node] : (node.children ? extractMediaFiles(node.children, targetPath) : []);
+    if (node.type === 'gif') return [node];
+    if (node.children) return findAllGifFiles(node.children);
+    return [];
+  });
+};
+
+/**
+ * Checks if a directory contains subdirectories
+ * @param {Object} node - Directory node
+ * @returns {boolean} True if directory has subdirectories
+ */
+const hasSubdirectories = (node) => {
+  return node.children?.some(child => !child.type) || false;
+};
+
+/**
+ * Gets a random 50px thumbnail from a directory's files
+ * @param {Array} files - Array of files
+ * @returns {Object|null} Random 50px thumbnail file or null
+ */
+const getRandomThumbnail = (files) => {
+  const thumbnails = files.filter(file => {
+    const metadata = parseGifFilename(file.text);
+    return metadata && metadata.resolution === 50;
+  });
+  return thumbnails.length > 0 ? thumbnails[Math.floor(Math.random() * thumbnails.length)] : null;
+};
+
+/**
+ * Extracts media files based on directory level
+ * @param {Array} nodes - Directory tree nodes
+ * @param {string} targetPath - Target path to filter files
+ * @returns {Array} Filtered media files and directory previews
+ */
+const extractMediaFiles = (nodes, targetPath) => {
+  // For root or intermediate directories, return directory previews
+  if (!targetPath || hasSubdirectories(nodes.find(n => n.id === targetPath) || { children: [] })) {
+    return nodes
+      .filter(node => !node.type && node.children) // Only directories
+      .map(dir => {
+        const allFiles = findAllGifFiles([dir]);
+        const thumbnail = getRandomThumbnail(allFiles);
+        if (!thumbnail) return null;
+        
+        return {
+          ...thumbnail,
+          isDirectoryPreview: true,
+          directoryId: dir.id,
+          directoryName: dir.text
+        };
+      })
+      .filter(Boolean); // Remove nulls
+  }
+  
+  // For leaf directories, return all files
+  return nodes.flatMap(node => {
+    const nodeMatches = node.id === targetPath || 
+                       (node.path && node.path.startsWith(targetPath + '/'));
+    
+    if (nodeMatches) {
+      if (node.type === 'gif') return [node];
+      if (node.children) return extractMediaFiles(node.children, targetPath);
     }
+    
+    if (node.children) return extractMediaFiles(node.children, targetPath);
     return [];
   });
 };
@@ -27,10 +94,22 @@ const extractMediaFiles = (nodes, targetPath) => {
  */
 const parseGifFilename = (filename) => {
   if (!filename.endsWith('.gif')) return null;
-  const [baseName, resolution] = filename.replace('.gif', '').split('-').slice(-2);
+  
+  // Remove .gif extension
+  const name = filename.replace('.gif', '');
+  
+  // Extract resolution (last number after last dash)
+  const lastDashIndex = name.lastIndexOf('-');
+  if (lastDashIndex === -1) return null;
+  
+  const resolution = parseInt(name.substring(lastDashIndex + 1));
+  const baseName = name.substring(0, lastDashIndex);
+  
+  if (isNaN(resolution)) return null;
+  
   return {
     baseName,
-    resolution: parseInt(resolution)
+    resolution
   };
 };
 
@@ -40,11 +119,17 @@ const parseGifFilename = (filename) => {
  * @returns {Object} Grouped files by base name with resolution variants
  */
 const groupFilesByVariants = (files) => {
+  console.log('Grouping files:', files);
   const groups = {};
 
   files.forEach(file => {
+    console.log('Processing file:', file.text);
     const metadata = parseGifFilename(file.text);
-    if (!metadata) return;
+    console.log('Parsed metadata:', metadata);
+    if (!metadata) {
+      console.log('Skipping file - no metadata');
+      return;
+    }
 
     const { baseName, resolution } = metadata;
     if (!groups[baseName]) {
@@ -52,12 +137,20 @@ const groupFilesByVariants = (files) => {
     }
 
     const sizeCategory = RESOLUTIONS[resolution] || 'custom';
+    console.log('File categorization:', {
+      baseName,
+      resolution,
+      sizeCategory,
+      path: file.path
+    });
+    
     groups[baseName].variants[sizeCategory] = {
       path: file.path,
       resolution
     };
   });
 
+  console.log('Final groups:', groups);
   return groups;
 };
 
@@ -87,6 +180,20 @@ const createGalleryImage = (baseName, versions) => ({
  * @returns {Array} Processed image objects for gallery display
  */
 const processMediaFiles = (files) => {
+  // Handle directory previews
+  const directoryPreviews = files.filter(f => f.isDirectoryPreview);
+  if (directoryPreviews.length > 0) {
+    return directoryPreviews.map(file => ({
+      thumb: getMediaUrl(file.path),
+      full: getMediaUrl(file.path),
+      alt: file.directoryName,
+      title: file.directoryName,
+      isDirectory: true,
+      directoryId: file.directoryId
+    }));
+  }
+
+  // Handle leaf directory files
   const imageGroups = groupFilesByVariants(files);
   
   return Object.entries(imageGroups)
@@ -99,17 +206,23 @@ const processMediaFiles = (files) => {
  * Displays a gallery of images based on the current URL path
  */
 const DynamicGalleryPage = () => {
-  const { path = '', '*': rest } = useParams();
-  const cleanPath = path.startsWith('gallery/') ? path.substring(7) : path;
-  const fullPath = rest ? `${cleanPath}/${rest}` : cleanPath;
+  const { '*': pathParam = '' } = useParams();
+  // Remove 'root' and any leading/trailing slashes
+  const fullPath = pathParam
+    .replace(/^root\/?/, '')  // Remove 'root/' prefix if present
+    .replace(/^\/+|\/+$/g, ''); // Remove leading/trailing slashes
   const [images, setImages] = useState([]);
  
   useEffect(() => {
     const loadImages = async () => {
       try {
+        console.log('Loading gallery for path:', fullPath);
         const tree = await scanMediaDirectory();
+        console.log('Media tree:', tree);
         const mediaFiles = extractMediaFiles(tree, fullPath);
+        console.log('Extracted media files:', mediaFiles);
         const processedImages = processMediaFiles(mediaFiles);
+        console.log('Processed images:', processedImages);
         setImages(processedImages);
       } catch (error) {
         console.error('Failed to load gallery images:', error);
@@ -119,6 +232,9 @@ const DynamicGalleryPage = () => {
    
     loadImages();
   }, [fullPath]);
+
+  // Add debug render to show current state
+  console.log('Rendering gallery with images:', images);
 
   return (
     <WindowProvider>
