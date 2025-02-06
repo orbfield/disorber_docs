@@ -7,8 +7,7 @@ import SideNavigation from './SideNavigation';
 
 const Sidebar = ({ isSidebarCollapsed, setSidebarCollapsed, activeSection, onNavigation }) => {
   return (
-    <NavProvider>
-      <motion.div
+    <motion.div
       layout
       transition={{ duration: 0.15 }}
       className={`h-screen bg-gray-900/50 backdrop-blur-sm px-1 pt-1 pb-6 flex flex-col gap-0.5 relative overflow-hidden
@@ -36,7 +35,6 @@ const Sidebar = ({ isSidebarCollapsed, setSidebarCollapsed, activeSection, onNav
         onNavigation={onNavigation}
       />
       </motion.div>
-    </NavProvider>
   );
 };
 

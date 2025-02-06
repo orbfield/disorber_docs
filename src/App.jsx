@@ -1,116 +1,96 @@
 // App.jsx
-import React, { lazy, Suspense } from 'react';
+import React, { lazy, Suspense, useState, useEffect } from 'react';
+import { createHashRouter, RouterProvider } from 'react-router-dom';
 import Layout from './components/layout/Layout';
-import { createHashRouter, RouterProvider } from 'react-router-dom'; 
 import { SidebarProvider } from './components/layout/SidebarContext';
+import { NavProvider } from './components/layout/Sidebar/NavContext';
+import { scanMediaDirectory } from './media/mediaScanner';
 
-// Lazy load modules
-const HomePage = lazy(() => import('./Pages/Home'));
-const ImagesPage = lazy(() => import('./modules/Image'));
-const GalleryPage = lazy(() => import('./Pages/Gallery'));
-const HilbertBellPage = lazy(() => import('./Pages/Gallery/HilbertBell'));
-const HilbertBellTopPage = lazy(() => import('./Pages/Gallery/HilbertBell/Top'));
-const BinaryPage = lazy(() => import('./modules/Binary'));
-const DocsPage = lazy(() => import('./modules/Docs'));
-const SettingsPage = lazy(() => import('./modules/Settings'));
+const DynamicGalleryPage = lazy(() => import('./Pages/DynamicGallery'));
 
-const Loading = () => (
-  <div className="flex items-center justify-center h-full">
-    <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-cyan-500"></div>
-  </div>
-);
-
-const router = createHashRouter(
-  [
-  {
-    path: "/",
-    element: (
-      <SidebarProvider>
-        <Layout />
-      </SidebarProvider>
-    ),
-    children: [
-      {
-        path: "/",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <HomePage />
-          </Suspense>
-        ),
-      },
-      {
-        path: "/image",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <ImagesPage />
-          </Suspense>
-        ),
-      },
-      {
-        path: "/gallery",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <GalleryPage />
-          </Suspense>
-        ),
-      },
-      {
-        path: "/gallery/hilbertbell",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <HilbertBellPage />
-          </Suspense>
-        ),
-      },
-      {
-        path: "/gallery/hilbertbell/top",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <HilbertBellTopPage />
-          </Suspense>
-        ),
-      },
-      {
-        path: "/binary",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <BinaryPage />
-          </Suspense>
-        ),
-      },
-      {
-        path: "/docs",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <DocsPage />
-          </Suspense>
-        ),
-      },
-
-      {
-        path: "/settings",
-        element: (
-          <Suspense fallback={<Loading />}>
-            <SettingsPage />
-          </Suspense>
-        ),
-      },
-    ],
-  },
-  ],
-  {
-    future: {
-      v7_startTransition: true,
-      v7_relativeSplatPath: true,
-      v7_fetcherPersist: true,
-      v7_normalizeFormMethod: true,
-      v7_partialHydration: true,
-      v7_skipActionErrorRevalidation: true
-    }
-  }
-);
+// Add timestamp to loading component for tracking mount/unmount
+const Loading = () => {
+  console.log(`[${new Date().toISOString()}] Loading component rendered`);
+  return (
+    <div className="flex items-center justify-center h-full">
+      <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-cyan-500"></div>
+    </div>
+  );
+};
 
 const App = () => {
+  console.log('[App] Component mounted');
+  const [router, setRouter] = useState(null);
+  const [mediaTree, setMediaTree] = useState(null);
+
+  useEffect(() => {
+    console.log('[App] Starting initialization');
+    
+    const initApp = async () => {
+      try {
+        console.log('[App] Scanning media directory...');
+        const mediaTreeData = await scanMediaDirectory();
+        console.log('[App] Media tree loaded:', mediaTreeData);
+        
+        // Add a top-level Gallery node to contain media items
+        const navigationTree = [{
+          id: 'gallery',
+          text: 'Gallery',
+          icon: 'Image',
+          isExpanded: false,
+          children: mediaTreeData,
+          path: 'gallery'
+        }];
+        
+        setMediaTree(navigationTree);
+        
+        const routes = [{
+          path: "/",
+          element: (
+            <NavProvider initialTree={navigationTree}>
+              <SidebarProvider>
+                <Layout />
+              </SidebarProvider>
+            </NavProvider>
+          ),
+          children: [{
+            path: "/gallery/:path/*",
+            element: (
+              <Suspense fallback={<Loading />}>
+                <DynamicGalleryPage />
+              </Suspense>
+            )
+          }]
+        }];
+
+        console.log('[App] Creating router with routes:', routes);
+        const newRouter = createHashRouter(routes, {
+          future: {
+            v7_startTransition: true,
+            v7_relativeSplatPath: true,
+            v7_fetcherPersist: true,
+            v7_normalizeFormMethod: true,
+            v7_partialHydration: true,
+            v7_skipActionErrorRevalidation: true
+          }
+        });
+        
+        console.log('[App] Router created successfully');
+        setRouter(newRouter);
+      } catch (error) {
+        console.error('[App] Failed to initialize app:', error);
+      }
+    };
+
+    initApp();
+  }, []);
+
+  if (!router || !mediaTree) {
+    console.log('[App] Waiting for initialization. Router:', !!router, 'MediaTree:', !!mediaTree);
+    return <Loading />;
+  }
+
+  console.log('[App] Rendering RouterProvider');
   return <RouterProvider router={router} />;
 };
 

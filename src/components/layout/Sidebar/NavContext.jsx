@@ -1,87 +1,103 @@
+// NavProvider.jsx
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { scanPagesDirectory } from './utils/pageScanner';
 
 const NavContext = createContext();
 
-export const NavProvider = ({ children }) => {
-  const [originalTree, setOriginalTree] = useState([]);
-  const [navTree, setNavTree] = useState([]);
+export const NavProvider = ({ children, initialTree = [] }) => {
+  const [originalTree, setOriginalTree] = useState(initialTree);
+  const [navTree, setNavTree] = useState(initialTree);
   const [searchTerm, setSearchTerm] = useState('');
 
+  // Update trees when initialTree changes
   useEffect(() => {
-    const loadNavTree = async () => {
-      try {
-        const tree = await scanPagesDirectory();
-        setOriginalTree(tree);
-        setNavTree(tree);
-      } catch (error) {
-        console.error('Failed to load navigation tree:', error);
-        setNavTree([
-          {
-            id: 'home',
-            text: 'Home',
-            icon: 'Home',
-            isExpanded: false,
-            children: []
-          }
-        ]);
-      }
-    };
-    loadNavTree();
-  }, []);
+    if (initialTree && initialTree.length > 0) {
+      console.log('NavProvider: initialTree updated', initialTree);
+      setOriginalTree(initialTree);
+      setNavTree(initialTree);
+    }
+  }, [initialTree]);
+
+  // Log initial tree when component mounts
+  useEffect(() => {
+    console.group('NavProvider Initialization');
+    console.log('Initial tree received:', initialTree);
+    console.log('Tree structure:', JSON.stringify(initialTree, null, 2));
+    console.groupEnd();
+  }, [initialTree]);
+
+  // Monitor tree changes
+  useEffect(() => {
+    console.group('NavTree Update');
+    console.log('Current navTree:', navTree);
+    console.log('Original tree:', originalTree);
+    console.groupEnd();
+  }, [navTree, originalTree]);
 
   const searchNodes = (nodes, term) => {
-    return nodes.map(node => {
-      // Deep clone the node to preserve all properties
+    console.group('Searching Nodes');
+    console.log('Search term:', term);
+    console.log('Nodes to search:', nodes);
+
+    const result = nodes.map(node => {
       const newNode = {
         ...node,
         children: node.children ? [...node.children] : [],
         isExpanded: node.isExpanded
       };
-      
-      // Check if the current node matches the search term
+     
       const matches = node.text.toLowerCase().includes(term.toLowerCase());
-      
-      // Recursively search children if they exist
+      console.log(`Node "${node.text}" matches:`, matches);
+     
       if (newNode.children.length > 0) {
         newNode.children = searchNodes(newNode.children, term).filter(child => {
-          // Keep child if it matches or has matching descendants
-          return child.matches || child.children?.some(c => c.matches);
+          const keepChild = child.matches || child.children?.some(c => c.matches);
+          console.log(`Child "${child.text}" keep:`, keepChild);
+          return keepChild;
         });
-        
-        // A node should be expanded if it has matching children
+       
         const hasMatchingChildren = newNode.children.length > 0;
         newNode.isExpanded = term !== '' && (matches || hasMatchingChildren);
       }
 
-      // Mark if this node matches for parent filtering
       newNode.matches = matches;
-      
-      // If this node matches the search term, it should be expanded
+     
       if (matches && term !== '') {
         newNode.isExpanded = true;
       }
 
+      console.log(`Processed node "${node.text}":`, {
+        matches,
+        isExpanded: newNode.isExpanded,
+        childrenCount: newNode.children.length
+      });
+
       return newNode;
     });
+
+    console.groupEnd();
+    return result;
   };
 
   const updateSearch = (term) => {
+    console.group('Updating Search');
+    console.log('New search term:', term);
+    
     setSearchTerm(term);
     if (term === '') {
-      // Reset to original tree
+      console.log('Resetting to original tree');
       setNavTree(resetExpansion(originalTree));
     } else {
-      // Filter the root level to only show nodes that match or have matching descendants
-      const searchResult = searchNodes(originalTree, term).filter(node => 
+      const searchResult = searchNodes(originalTree, term).filter(node =>
         node.matches || node.children?.some(child => child.matches)
       );
-      console.log('Search result:', searchResult); // Debug log
+      console.log('Search results:', searchResult);
       setNavTree(searchResult);
     }
+    console.groupEnd();
   };
 
   const resetExpansion = (nodes) => {
+    console.log('Resetting expansion state');
     return nodes.map(node => ({
       ...node,
       isExpanded: false,
@@ -90,10 +106,13 @@ export const NavProvider = ({ children }) => {
   };
 
   const toggleNode = (targetNode) => {
+    console.group('Toggling Node');
+    console.log('Target node:', targetNode);
+
     const updateNodes = (nodes) => {
       return nodes.map(node => {
-        // Compare by id instead of reference
         if (node.id === targetNode.id) {
+          console.log(`Toggling node "${node.text}"`);
           return { ...node, isExpanded: !node.isExpanded };
         }
         if (node.children?.length) {
@@ -102,10 +121,14 @@ export const NavProvider = ({ children }) => {
         return node;
       });
     };
+   
+    const newNavTree = updateNodes(navTree);
+    const newOriginalTree = updateNodes(originalTree);
     
-    // Update both trees to maintain expansion state
-    setNavTree(updateNodes(navTree));
-    setOriginalTree(updateNodes(originalTree));
+    console.log('Updated nav tree:', newNavTree);
+    setNavTree(newNavTree);
+    setOriginalTree(newOriginalTree);
+    console.groupEnd();
   };
 
   return (

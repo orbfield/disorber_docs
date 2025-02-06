@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Home, Image, Binary, BookOpen, Settings, Folder, ChevronRight, ChevronDown } from 'lucide-react';
+import { Home, Image, Binary, BookOpen, Settings, Folder, ChevronRight, ChevronDown, Play } from 'lucide-react';
 import { useNav } from './NavContext';
 
 const icons = {
@@ -8,14 +8,15 @@ const icons = {
   Binary,
   BookOpen,
   Settings,
-  Folder
+  Folder,
+  Play
 };
 
 const NavItem = ({ node, isCollapsed, isActive, onToggle, onNavigation }) => {
   const [isHovered, setIsHovered] = useState(false);
   const Icon = icons[node.icon] || icons.Folder;
   const hasChildren = node.children?.length > 0;
-  
+
   const handleArrowClick = (e) => {
     e.stopPropagation();
     onToggle(node);
@@ -24,8 +25,7 @@ const NavItem = ({ node, isCollapsed, isActive, onToggle, onNavigation }) => {
   const handleTitleClick = (e) => {
     e.stopPropagation();
     if (node.id) {
-      onNavigation(node.id, node.path || node.id);
-      // Only expand if not already expanded
+      onNavigation(node.id, node.path || node.id, node.type);
       if (hasChildren && !node.isExpanded) {
         onToggle(node);
       }
@@ -44,7 +44,7 @@ const NavItem = ({ node, isCollapsed, isActive, onToggle, onNavigation }) => {
     >
       <div className={`flex items-center gap-1 py-1.5 ${isCollapsed ? 'justify-center w-10 mx-auto' : 'px-1.5'}`}>
         {!isCollapsed && hasChildren && (
-          <div 
+          <div
             className="w-5 h-5 flex items-center justify-center cursor-pointer hover:bg-gray-800/50 rounded-sm transition-colors"
             onClick={handleArrowClick}
           >

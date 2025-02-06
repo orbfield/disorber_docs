@@ -20,8 +20,14 @@ const Layout = () => {
  
   const activeSection = location.pathname.slice(1) || "home";
   
-  const handleNavigation = (id, path) => {
-    navigate(id === "home" ? "/" : `/${path}`);
+  const handleNavigation = (id, path, type) => {
+    if (type === 'gif') {
+      // For gallery items, use the gallery route pattern
+      navigate(`/gallery/${path}`);
+    } else {
+      // For regular navigation items
+      navigate(id === "home" ? "/" : `/${path}`);
+    }
   };
 
   return (

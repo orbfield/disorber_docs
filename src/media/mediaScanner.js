@@ -23,9 +23,10 @@ const getFileType = (filename) => {
 };
 
 export const scanMediaDirectory = async () => {
-  const mediaContext = require.context('../../../../media', true, /\.(jpg|jpeg|png|gif|mp4|webm)$/);
+  const mediaContext = require.context('./', true, /\.(jpg|jpeg|png|gif|mp4|webm)$/);
   const paths = mediaContext.keys();
-  
+  console.log('Found media paths:', paths);
+
   const tree = [];
   const processedDirs = new Set();
 
@@ -40,18 +41,16 @@ export const scanMediaDirectory = async () => {
     parts.forEach(part => {
       currentPath = currentPath ? `${currentPath}/${part}` : part;
       
-      if (processedDirs.has(currentPath)) {
-        const existingNode = currentLevel.find(node => node.id === part.toLowerCase());
-        currentLevel = existingNode.children;
-        return;
-      }
-      
-      processedDirs.add(currentPath);
-      
+      // Find existing node at current level
       const existingNode = currentLevel.find(node => node.id === part.toLowerCase());
-      if (!existingNode) {
+
+      if (existingNode) {
+        // If node exists, just update current level to its children
+        currentLevel = existingNode.children;
+      } else {
+        // If node doesn't exist, create it
         const newNode = {
-          id: currentPath.toLowerCase().replace(/\s+/g, '-'),
+          id: part.toLowerCase(),
           text: part.charAt(0).toUpperCase() + part.slice(1).replace(/-/g, ' '),
           icon: defaultIcons.folder,
           isExpanded: false,
@@ -60,8 +59,7 @@ export const scanMediaDirectory = async () => {
         };
         currentLevel.push(newNode);
         currentLevel = newNode.children;
-      } else {
-        currentLevel = existingNode.children;
+        processedDirs.add(currentPath);
       }
     });
 
@@ -78,12 +76,13 @@ export const scanMediaDirectory = async () => {
     }
   });
 
+  console.log('Generated tree:', tree);
   return tree;
 };
 
 export const getMediaUrl = (mediaPath) => {
   try {
-    return require(`../../../../media/${mediaPath}`);
+    return require(`./${mediaPath}`);
   } catch (error) {
     console.error(`Failed to load media: ${mediaPath}`, error);
     return null;
