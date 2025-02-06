@@ -1,8 +1,31 @@
-// NavProvider.jsx
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 
-const NavContext = createContext();
+/**
+ * @typedef {Object} NavNode
+ * @property {string} id - Unique identifier for the node
+ * @property {string} text - Display text for the node
+ * @property {NavNode[]} [children] - Child nodes
+ * @property {boolean} [isExpanded] - Whether the node is expanded
+ * @property {boolean} [matches] - Whether the node matches search criteria
+ */
 
+/**
+ * @typedef {Object} NavContextValue
+ * @property {NavNode[]} navTree - Current navigation tree
+ * @property {string} searchTerm - Current search term
+ * @property {(term: string) => void} updateSearch - Function to update search
+ * @property {(node: NavNode) => void} toggleNode - Function to toggle node expansion
+ */
+
+const NavContext = createContext(null);
+
+/**
+ * Provider component for navigation context
+ * @param {Object} props
+ * @param {React.ReactNode} props.children - Child components
+ * @param {NavNode[]} [props.initialTree=[]] - Initial navigation tree
+ */
 export const NavProvider = ({ children, initialTree = [] }) => {
   const [originalTree, setOriginalTree] = useState(initialTree);
   const [navTree, setNavTree] = useState(initialTree);
@@ -16,54 +39,70 @@ export const NavProvider = ({ children, initialTree = [] }) => {
     }
   }, [initialTree]);
 
+  /**
+   * Recursively searches through nodes and updates their state based on search term
+   * @param {NavNode[]} nodes - Array of navigation nodes to search through
+   * @param {string} term - Search term to match against
+   * @returns {NavNode[]} Updated array of nodes with search results
+   */
   const searchNodes = (nodes, term) => {
-
-    const result = nodes.map(node => {
+    const normalizedTerm = term.toLowerCase();
+    
+    return nodes.map(node => {
       const newNode = {
         ...node,
         children: node.children ? [...node.children] : [],
         isExpanded: node.isExpanded
       };
-     
-      const matches = node.text.toLowerCase().includes(term.toLowerCase());
-     
+      
+      const matches = node.text.toLowerCase().includes(normalizedTerm);
+      
       if (newNode.children.length > 0) {
-        newNode.children = searchNodes(newNode.children, term).filter(child => {
-          const keepChild = child.matches || child.children?.some(c => c.matches);
-          return keepChild;
-        });
-       
-        const hasMatchingChildren = newNode.children.length > 0;
-        newNode.isExpanded = term !== '' && (matches || hasMatchingChildren);
+        newNode.children = searchNodes(newNode.children, term)
+          .filter(child => child.matches || child.children?.some(c => c.matches));
+        
+        newNode.isExpanded = term !== '' && (matches || newNode.children.length > 0);
       }
-
+      
       newNode.matches = matches;
-     
       if (matches && term !== '') {
         newNode.isExpanded = true;
       }
-
-
+      
       return newNode;
     });
-
-    return result;
   };
 
+  /**
+   * Updates the navigation tree based on search term
+   * @param {string} term - Search term to filter nodes
+   */
   const updateSearch = (term) => {
-    
     setSearchTerm(term);
-    if (term === '') {
-      setNavTree(resetExpansion(originalTree));
-    } else {
-      const searchResult = searchNodes(originalTree, term).filter(node =>
-        node.matches || node.children?.some(child => child.matches)
-      );
+    
+    try {
+      if (!term) {
+        setNavTree(resetExpansion(originalTree));
+        return;
+      }
+      
+      const searchResult = searchNodes(originalTree, term)
+        .filter(node => node.matches || node.children?.some(child => child.matches));
       setNavTree(searchResult);
+    } catch (error) {
+      console.error('Error updating search:', error);
+      setNavTree(originalTree); // Fallback to original tree on error
     }
   };
 
+  /**
+   * Resets expansion state of all nodes
+   * @param {NavNode[]} nodes - Array of nodes to reset
+   * @returns {NavNode[]} Nodes with reset expansion state
+   */
   const resetExpansion = (nodes) => {
+    if (!Array.isArray(nodes)) return [];
+    
     return nodes.map(node => ({
       ...node,
       isExpanded: false,
@@ -71,7 +110,15 @@ export const NavProvider = ({ children, initialTree = [] }) => {
     }));
   };
 
+  /**
+   * Toggles expansion state of a specific node
+   * @param {NavNode} targetNode - Node to toggle
+   */
   const toggleNode = (targetNode) => {
+    if (!targetNode?.id) {
+      console.error('Invalid node provided to toggleNode');
+      return;
+    }
 
     const updateNodes = (nodes) => {
       return nodes.map(node => {
@@ -84,26 +131,48 @@ export const NavProvider = ({ children, initialTree = [] }) => {
         return node;
       });
     };
-   
-    const newNavTree = updateNodes(navTree);
-    const newOriginalTree = updateNodes(originalTree);
-    
-    setNavTree(newNavTree);
-    setOriginalTree(newOriginalTree);
+
+    try {
+      const newNavTree = updateNodes(navTree);
+      const newOriginalTree = updateNodes(originalTree);
+      
+      setNavTree(newNavTree);
+      setOriginalTree(newOriginalTree);
+    } catch (error) {
+      console.error('Error toggling node:', error);
+    }
+  };
+
+  const contextValue = {
+    navTree,
+    searchTerm,
+    updateSearch,
+    toggleNode
   };
 
   return (
-    <NavContext.Provider value={{
-      navTree,
-      searchTerm,
-      updateSearch,
-      toggleNode
-    }}>
+    <NavContext.Provider value={contextValue}>
       {children}
     </NavContext.Provider>
   );
 };
 
+NavProvider.propTypes = {
+  children: PropTypes.node.isRequired,
+  initialTree: PropTypes.arrayOf(PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    text: PropTypes.string.isRequired,
+    children: PropTypes.array,
+    isExpanded: PropTypes.bool,
+    matches: PropTypes.bool
+  }))
+};
+
+/**
+ * Custom hook to access navigation context
+ * @returns {NavContextValue} Navigation context value
+ * @throws {Error} If used outside of NavProvider
+ */
 export const useNav = () => {
   const context = useContext(NavContext);
   if (!context) {

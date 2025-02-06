@@ -1,25 +1,36 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 
 /**
- * BackgroundCanvas component provides a draggable and zoomable canvas with grid background.
- * Supports both mouse and touch interactions.
+ * A React component that provides a draggable and zoomable canvas with an optional grid background.
+ * Supports both mouse and touch interactions for panning and zooming.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {React.ReactNode} props.children - Content to be rendered within the canvas
+ * @param {boolean} [props.showGrid=true] - Whether to display the background grid
+ * @param {any} props.resetKey - Key to trigger canvas reset (position and scale)
+ * @returns {JSX.Element} A draggable and zoomable canvas component
  */
 const BackgroundCanvas = ({ children, showGrid = true, resetKey }) => {
-  // Constants
+  // Constants for canvas configuration
   const GRID_SIZE = 50;
   const GRID_COLOR = 'rgba(255, 255, 255, 0)';
   const MIN_SCALE = 0.1;
   const MAX_SCALE = 5;
-  const ZOOM_FACTOR = 0.9; // < 1 for zoom out, > 1 for zoom in
+  const ZOOM_FACTOR = 0.9;
 
-  // Refs and state
+  // Refs and state management
   const canvasRef = useRef(null);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [scale, setScale] = useState(1);
 
-  // Helper functions
+  /**
+   * Gets the DOM element currently under the pointer/touch event
+   * @param {MouseEvent|TouchEvent} e - The pointer or touch event
+   * @returns {Element|null} The element under the pointer
+   */
   const getElementUnderPointer = useCallback((e) => {
     if (e.touches) {
       const touch = e.touches[0];
@@ -28,12 +39,23 @@ const BackgroundCanvas = ({ children, showGrid = true, resetKey }) => {
     return e.target;
   }, []);
 
+  /**
+   * Extracts pointer position from either mouse or touch event
+   * @param {MouseEvent|TouchEvent} e - The pointer or touch event
+   * @returns {{clientX: number, clientY: number}} Normalized pointer coordinates
+   */
   const getPointerPosition = useCallback((e) => {
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
     return { clientX, clientY };
   }, []);
 
+  /**
+   * Checks if the pointer is over a draggable window element
+   * @param {Element} element - The element to check
+   * @param {boolean} isTouchEvent - Whether the event is a touch event
+   * @returns {boolean} True if over a draggable window
+   */
   const isOverDraggableWindow = useCallback((element, isTouchEvent) => {
     return !isTouchEvent && element?.closest?.('.window-draggable');
   }, []);
@@ -70,6 +92,10 @@ const BackgroundCanvas = ({ children, showGrid = true, resetKey }) => {
     });
   }, [isDragging, dragStart, getElementUnderPointer, getPointerPosition, isOverDraggableWindow]);
 
+  /**
+   * Handles mouse wheel events for zooming
+   * @param {WheelEvent} e - The wheel event
+   */
   const handleWheel = useCallback((e) => {
     const elementUnderPointer = e.target;
     if (elementUnderPointer?.closest?.('.window-draggable')) return;
@@ -93,7 +119,7 @@ const BackgroundCanvas = ({ children, showGrid = true, resetKey }) => {
     setIsDragging(false);
   }, []);
 
-  // Effects
+  // Effects for event listeners and reset handling
   useEffect(() => {
     const canvas = canvasRef.current;
     if (canvas) {
@@ -109,7 +135,7 @@ const BackgroundCanvas = ({ children, showGrid = true, resetKey }) => {
 
   useEffect(() => {
     const handleTouchMove = (e) => {
-      e.preventDefault(); // Prevent scrolling
+      e.preventDefault();
       handleMouseMove(e);
     };
 
