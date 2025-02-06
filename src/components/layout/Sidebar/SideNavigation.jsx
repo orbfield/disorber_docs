@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Home, Image, Binary, BookOpen, Settings, Folder, ChevronRight, ChevronDown, Play } from 'lucide-react';
 import { useNav } from './NavContext';
 
@@ -12,7 +13,7 @@ const icons = {
   Play
 };
 
-const NavItem = ({ node, isCollapsed, isActive, onToggle, onNavigation }) => {
+const NavItem = ({ node, isCollapsed, isActive, onToggle }) => {
   const [isHovered, setIsHovered] = useState(false);
   const Icon = icons[node.icon] || icons.Folder;
   const hasChildren = node.children?.length > 0;
@@ -22,10 +23,18 @@ const NavItem = ({ node, isCollapsed, isActive, onToggle, onNavigation }) => {
     onToggle(node);
   };
 
+  const navigate = useNavigate();
+  
   const handleTitleClick = (e) => {
     e.stopPropagation();
     if (node.id) {
-      onNavigation(node.id, node.path || node.id, node.type);
+      // Handle navigation directly
+      if (node.type === 'gif') {
+        navigate(`/gallery/${node.path}`);
+      } else {
+        navigate(node.id === "home" ? "/" : `/${node.path || node.id}`);
+      }
+      
       if (hasChildren && !node.isExpanded) {
         onToggle(node);
       }
@@ -66,7 +75,7 @@ const NavItem = ({ node, isCollapsed, isActive, onToggle, onNavigation }) => {
   );
 };
 
-const NavTree = ({ nodes, isCollapsed, activeSection, onToggle, onNavigation }) => {
+const NavTree = ({ nodes, isCollapsed, activeSection, onToggle }) => {
   return (
     <div className="space-y-0">
       {nodes.map((node, index) => (
@@ -76,7 +85,6 @@ const NavTree = ({ nodes, isCollapsed, activeSection, onToggle, onNavigation }) 
             isCollapsed={isCollapsed}
             isActive={node.id === activeSection}
             onToggle={onToggle}
-            onNavigation={onNavigation}
           />
           {node.children?.length > 0 && node.isExpanded && !isCollapsed && (
             <div className="ml-2">
@@ -85,7 +93,6 @@ const NavTree = ({ nodes, isCollapsed, activeSection, onToggle, onNavigation }) 
                 isCollapsed={isCollapsed}
                 activeSection={activeSection}
                 onToggle={onToggle}
-                onNavigation={onNavigation}
               />
             </div>
           )}
@@ -95,7 +102,7 @@ const NavTree = ({ nodes, isCollapsed, activeSection, onToggle, onNavigation }) 
   );
 };
 
-const SideNavigation = ({ isCollapsed = false, activeSection = '', onNavigation = () => {} }) => {
+const SideNavigation = ({ isCollapsed = false, activeSection = '' }) => {
   const { navTree, toggleNode } = useNav();
 
   return (
@@ -105,7 +112,6 @@ const SideNavigation = ({ isCollapsed = false, activeSection = '', onNavigation 
         isCollapsed={isCollapsed}
         activeSection={activeSection}
         onToggle={toggleNode}
-        onNavigation={onNavigation}
       />
     </nav>
   );

@@ -5,7 +5,7 @@ import { Menu } from 'lucide-react';
 import SearchSite from './SearchSite';
 import SideNavigation from './SideNavigation';
 
-const Sidebar = ({ isSidebarCollapsed, setSidebarCollapsed, activeSection, onNavigation }) => {
+const Sidebar = ({ isSidebarCollapsed, setSidebarCollapsed, activeSection }) => {
   return (
     <motion.div
       layout
@@ -32,7 +32,6 @@ const Sidebar = ({ isSidebarCollapsed, setSidebarCollapsed, activeSection, onNav
       <SideNavigation
         isCollapsed={isSidebarCollapsed}
         activeSection={activeSection}
-        onNavigation={onNavigation}
       />
       </motion.div>
   );

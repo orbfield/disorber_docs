@@ -25,7 +25,6 @@ const getFileType = (filename) => {
 export const scanMediaDirectory = async () => {
   const mediaContext = require.context('./', true, /\.(jpg|jpeg|png|gif|mp4|webm)$/);
   const paths = mediaContext.keys();
-  console.log('Found media paths:', paths);
 
   const tree = [];
   const processedDirs = new Set();
@@ -76,7 +75,6 @@ export const scanMediaDirectory = async () => {
     }
   });
 
-  console.log('Generated tree:', tree);
   return tree;
 };
 
@@ -84,7 +82,6 @@ export const getMediaUrl = (mediaPath) => {
   try {
     return require(`./${mediaPath}`);
   } catch (error) {
-    console.error(`Failed to load media: ${mediaPath}`, error);
     return null;
   }
 };

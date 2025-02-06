@@ -1,13 +1,5 @@
 import React from "react";
-import { useNavigate, useLocation, Outlet } from "react-router-dom";
-import {
-  Home,
-  Calculator,
-  BinaryIcon,
-  Activity,
-  BookOpen,
-  Settings,
-} from "lucide-react";
+import { useLocation, Outlet } from "react-router-dom";
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
 import { useSidebar } from './SidebarContext';
@@ -15,20 +7,8 @@ import BackgroundCanvas from './BackgroundCanvas';
 
 const Layout = () => {
   const { isSidebarCollapsed, setIsSidebarCollapsed } = useSidebar();
-  const navigate = useNavigate();
   const location = useLocation();
- 
   const activeSection = location.pathname.slice(1) || "home";
-  
-  const handleNavigation = (id, path, type) => {
-    if (type === 'gif') {
-      // For gallery items, use the gallery route pattern
-      navigate(`/gallery/${path}`);
-    } else {
-      // For regular navigation items
-      navigate(id === "home" ? "/" : `/${path}`);
-    }
-  };
 
   return (
     <div className="w-screen h-screen overflow-hidden relative">
@@ -48,7 +28,6 @@ const Layout = () => {
           isSidebarCollapsed={isSidebarCollapsed}
           setSidebarCollapsed={setIsSidebarCollapsed}
           activeSection={activeSection}
-          onNavigation={handleNavigation}
         />
       </div>
       
