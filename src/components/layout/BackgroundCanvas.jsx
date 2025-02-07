@@ -23,13 +23,13 @@ const BackgroundCanvas = ({ children, showGrid = true, resetKey }) => {
     return !(!e.touches && element?.closest?.('.window-draggable'));
   }, []);
 
-  const { isDragging, position, handlers, setPosition, dragStart } = useDrag({
+  const { isDragging, position, handlers, setPosition } = useDrag({
     shouldStartDrag
   });
 
-  const { scale, handleWheel, resetZoom, setScale } = useZoom({
-    onZoom: useCallback(({ scale, position: newPosition }) => {
-      setPosition(() => newPosition);
+  const { scale, handleWheel, resetZoom } = useZoom({
+    onZoom: useCallback(({ scale: newScale, position: newPosition }) => {
+      setPosition(newPosition);
     }, [])
   });
 

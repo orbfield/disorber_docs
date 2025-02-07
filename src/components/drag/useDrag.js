@@ -45,10 +45,10 @@ export const useDrag = ({ onDragStart, onDragEnd, shouldStartDrag } = {}) => {
 
     const { clientX, clientY } = getPointerPosition(e);
     
-    // Adjust movement by scale to maintain 1:1 feel at any zoom level
+    // Store raw movement in world space
     setPosition(prevPosition => ({
-      x: (clientX - dragStart.x) / scale,
-      y: (clientY - dragStart.y) / scale
+      x: clientX - dragStart.x,
+      y: clientY - dragStart.y
     }));
   }, [isDragging, dragStart, getPointerPosition, shouldStartDrag]);
 

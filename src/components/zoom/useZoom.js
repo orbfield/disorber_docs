@@ -30,8 +30,11 @@ export const useZoom = ({
       const newScale = Math.min(Math.max(prevScale * newZoomFactor, minScale), maxScale);
       
       // Calculate new position to zoom towards mouse pointer
-      const x = mouseX - (mouseX - position.x) * (newScale / prevScale);
-      const y = mouseY - (mouseY - position.y) * (newScale / prevScale);
+      const dx = (mouseX - position.x) / prevScale;
+      const dy = (mouseY - position.y) / prevScale;
+      
+      const x = mouseX - dx * newScale;
+      const y = mouseY - dy * newScale;
       
       onZoom?.({ scale: newScale, position: { x, y } });
       return newScale;
