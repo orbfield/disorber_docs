@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useCallback } from 'react';
-import { useDrag } from '../drag/useDrag';
-import { useZoom } from '../zoom/useZoom';
+import { useDrag } from './useDrag';
+import { useZoom } from './useZoom';
 
 /**
  * A React component that provides a draggable and zoomable canvas with an optional grid background.

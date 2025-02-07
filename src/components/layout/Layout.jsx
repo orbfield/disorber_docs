@@ -3,7 +3,7 @@ import { useLocation, Outlet } from "react-router-dom";
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
 import { useSidebar } from './SidebarContext';
-import BackgroundCanvas from './BackgroundCanvas';
+import BackgroundCanvas from '../canvas';
 
 const Layout = () => {
   const { isSidebarCollapsed } = useSidebar();
