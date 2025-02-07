@@ -103,8 +103,8 @@ const WindowContent = React.memo(({
   }`;
 
   const basePosition = {
-    x: windowData.position.x * scale,
-    y: windowData.position.y * scale
+    x: windowData.position.x,
+    y: windowData.position.y
   };
 
   return (
@@ -175,8 +175,8 @@ export const WindowWrapper = (props) => {
   const handleDragEnd = (event) => {
     if (event.delta) {
       const newPosition = {
-        x: windowData.position.x + (event.delta.x / scale),
-        y: windowData.position.y + (event.delta.y / scale)
+        x: windowData.position.x + (event.delta.x),
+        y: windowData.position.y + (event.delta.y)
       };
       updateWindowPosition(props.id, newPosition);
     }

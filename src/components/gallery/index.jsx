@@ -47,11 +47,9 @@ export function Gallery({ images = [] }) {
     if (!activeWindows.has(id)) {
       const width = 400;
       const height = 400;
-      // Get the current canvas scale
-      const canvasScale = document.querySelector('[data-canvas-scale]')?.dataset.canvasScale || 1;
-      // Adjust the random position based on the canvas scale
-      const x = Math.max(0, (Math.random() * (window.innerWidth - width)) / parseFloat(canvasScale));
-      const y = Math.max(0, (Math.random() * (window.innerHeight - height)) / parseFloat(canvasScale));
+      // Position in viewport coordinates (WindowWrapper handles scaling)
+      const x = Math.max(0, Math.random() * (window.innerWidth - width));
+      const y = Math.max(0, Math.random() * (window.innerHeight - height));
       
       registerWindow(id, {
         x, y, width, height,
