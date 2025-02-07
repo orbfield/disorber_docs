@@ -119,15 +119,11 @@ const parseGifFilename = (filename) => {
  * @returns {Object} Grouped files by base name with resolution variants
  */
 const groupFilesByVariants = (files) => {
-  console.log('Grouping files:', files);
   const groups = {};
 
   files.forEach(file => {
-    console.log('Processing file:', file.text);
     const metadata = parseGifFilename(file.text);
-    console.log('Parsed metadata:', metadata);
     if (!metadata) {
-      console.log('Skipping file - no metadata');
       return;
     }
 
@@ -137,20 +133,12 @@ const groupFilesByVariants = (files) => {
     }
 
     const sizeCategory = RESOLUTIONS[resolution] || 'custom';
-    console.log('File categorization:', {
-      baseName,
-      resolution,
-      sizeCategory,
-      path: file.path
-    });
     
     groups[baseName].variants[sizeCategory] = {
       path: file.path,
       resolution
     };
   });
-
-  console.log('Final groups:', groups);
   return groups;
 };
 
@@ -216,13 +204,9 @@ const DynamicGalleryPage = () => {
   useEffect(() => {
     const loadImages = async () => {
       try {
-        console.log('Loading gallery for path:', fullPath);
         const tree = await scanMediaDirectory();
-        console.log('Media tree:', tree);
         const mediaFiles = extractMediaFiles(tree, fullPath);
-        console.log('Extracted media files:', mediaFiles);
         const processedImages = processMediaFiles(mediaFiles);
-        console.log('Processed images:', processedImages);
         setImages(processedImages);
       } catch (error) {
         console.error('Failed to load gallery images:', error);
@@ -232,9 +216,6 @@ const DynamicGalleryPage = () => {
    
     loadImages();
   }, [fullPath]);
-
-  // Add debug render to show current state
-  console.log('Rendering gallery with images:', images);
 
   return (
     <WindowProvider>
