@@ -41,8 +41,8 @@ export const useDrag = ({ shouldStartDrag } = {}) => {
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
 
     setPosition({
-      x: startPosition.x + (clientX - dragStart.x) / scale,
-      y: startPosition.y + (clientY - dragStart.y) / scale,
+      x: startPosition.x + (clientX - dragStart.x),
+      y: startPosition.y + (clientY - dragStart.y),
     });
   }, [isDragging, startPosition, dragStart]);
 
