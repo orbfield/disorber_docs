@@ -57,9 +57,18 @@ The drag system uses DndKit's built-in scaling capabilities through modifiers to
     })
   ]}
 >
-  <div ref={setNodeRef} {...attributes} {...listeners}>
-    {/* Header - Draggable area */}
-    <div className={headerClassName}>...</div>
+  <div ref={setNodeRef}>
+    {/* Header with separated drag and control areas */}
+    <div className="flex items-center justify-between w-full">
+      {/* Title area - Draggable */}
+      <div {...attributes} {...listeners} className={headerClassName}>
+        {title}
+      </div>
+      {/* Controls area - Independent interaction */}
+      <button onClick={onClose} className="window-control">
+        ×
+      </button>
+    </div>
     
     {/* Content - Protected from drag events */}
     <div className="pointer-events-auto">
@@ -73,8 +82,10 @@ Key Features:
 - Native scale-aware dragging through DndKit's modifier system
 - Real-time cursor following during drag operations
 - Proper scaling of final positions on drag end
-- Window-wide drag functionality with protected content area
-- Drag handlers applied to window frame while preserving content interaction
+- Separated drag and control areas in window header
+  - Title area handles dragging
+  - Control area (close button) operates independently
+- Protected content area for normal interaction
 
 Components:
 1. **DragProvider**
@@ -205,11 +216,15 @@ const handleOpenWindow = (id, image) => {
    - Always use unique window IDs
    - Clean up windows on component unmount
    - Handle window state updates atomically
+   - Maintain window positions for reopening
 
 2. **Drag Operations**
    - Scale-aware dragging through DndKit modifiers
    - Real-time cursor following
    - Proper scaling of final positions
+   - Separate drag and control areas
+     - Apply drag handlers only to title area
+     - Keep controls independent and accessible
    - Protected content area interaction
    - Touch event handling
 
@@ -217,3 +232,9 @@ const handleOpenWindow = (id, image) => {
    - Respect min/max scale limits
    - Position-aware zoom calculations
    - Scale-aware position updates
+
+4. **Window Header Structure**
+   - Separate drag and control areas clearly
+   - Title area should handle dragging
+   - Controls should be independent of drag
+   - Maintain consistent interaction zones

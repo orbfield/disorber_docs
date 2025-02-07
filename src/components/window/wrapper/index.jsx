@@ -50,7 +50,8 @@ const splitWindowChildren = (children) => {
  *   windowData: WindowData,
  *   registerWindow: (id: string, position: Position) => void,
  *   updateWindowPosition: (id: string, position: Position) => void,
- *   bringToFront: (id: string) => void
+ *   bringToFront: (id: string) => void,
+ *   toggleWindowVisibility: (id: string) => void
  * }} props
  */
 const WindowContent = React.memo(({ 
@@ -62,7 +63,8 @@ const WindowContent = React.memo(({
   windowData,
   registerWindow,
   updateWindowPosition,
-  bringToFront
+  bringToFront,
+  toggleWindowVisibility
 }) => {
   // Get current zoom scale
   const { scale } = useZoom();
@@ -119,11 +121,24 @@ const WindowContent = React.memo(({
       className={`${DRAG_STYLES.base} ${className}`}
       onClick={() => bringToFront(id)}
     >
-      <div {...attributes} {...listeners} className="h-full">
+      <div className="h-full">
         {/* Header */}
-        {React.cloneElement(header, {
-          className: headerClassName
-        })}
+        <div className="flex items-center justify-between w-full">
+          {/* Draggable title area */}
+          <div {...attributes} {...listeners} className={`flex-1 ${headerClassName}`}>
+            {header.props.children}
+          </div>
+          {/* Controls area */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleWindowVisibility(id);
+            }}
+            className="text-gray-400 hover:text-white transition-colors w-8 h-8 flex items-center justify-center flex-lg hover:bg-gray-700"
+          >
+            ×
+          </button>
+        </div>
         
         {/* Content */}
         <div className="pointer-events-auto">
@@ -147,7 +162,8 @@ export const WindowWrapper = (props) => {
     windows,
     registerWindow,
     updateWindowPosition,
-    bringToFront
+    bringToFront,
+    toggleWindowVisibility
   } = useWindowContext();
 
   // Get window data from context
@@ -174,6 +190,7 @@ export const WindowWrapper = (props) => {
         registerWindow={registerWindow}
         updateWindowPosition={updateWindowPosition}
         bringToFront={bringToFront}
+        toggleWindowVisibility={toggleWindowVisibility}
       />
     </DragProvider>
   );
