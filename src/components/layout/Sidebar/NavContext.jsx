@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
 
 /**
@@ -34,8 +34,8 @@ export const NavProvider = ({ children, initialTree = [] }) => {
   // Update trees when initialTree changes
   useEffect(() => {
     if (initialTree && initialTree.length > 0) {
-      setOriginalTree(initialTree);
-      setNavTree(initialTree);
+      setOriginalTree(() => [...initialTree]);
+      setNavTree(() => [...initialTree]);
     }
   }, [initialTree]);
 
@@ -45,7 +45,7 @@ export const NavProvider = ({ children, initialTree = [] }) => {
    * @param {string} term - Search term to match against
    * @returns {NavNode[]} Updated array of nodes with search results
    */
-  const searchNodes = (nodes, term) => {
+  const searchNodes = useCallback((nodes, term) => {
     const normalizedTerm = term.toLowerCase();
     
     return nodes.map(node => {
@@ -71,36 +71,14 @@ export const NavProvider = ({ children, initialTree = [] }) => {
       
       return newNode;
     });
-  };
-
-  /**
-   * Updates the navigation tree based on search term
-   * @param {string} term - Search term to filter nodes
-   */
-  const updateSearch = (term) => {
-    setSearchTerm(term);
-    
-    try {
-      if (!term) {
-        setNavTree(resetExpansion(originalTree));
-        return;
-      }
-      
-      const searchResult = searchNodes(originalTree, term)
-        .filter(node => node.matches || node.children?.some(child => child.matches));
-      setNavTree(searchResult);
-    } catch (error) {
-      console.error('Error updating search:', error);
-      setNavTree(originalTree); // Fallback to original tree on error
-    }
-  };
+  }, []);
 
   /**
    * Resets expansion state of all nodes
    * @param {NavNode[]} nodes - Array of nodes to reset
    * @returns {NavNode[]} Nodes with reset expansion state
    */
-  const resetExpansion = (nodes) => {
+  const resetExpansion = useCallback((nodes) => {
     if (!Array.isArray(nodes)) return [];
     
     return nodes.map(node => ({
@@ -108,13 +86,37 @@ export const NavProvider = ({ children, initialTree = [] }) => {
       isExpanded: false,
       children: node.children ? resetExpansion(node.children) : []
     }));
-  };
+  }, []);
+
+  /**
+   * Updates the navigation tree based on search term
+   * @param {string} term - Search term to filter nodes
+   */
+  const updateSearch = useCallback((term) => {
+    setSearchTerm(() => term);
+    
+    try {
+      if (!term) {
+        setNavTree(prevTree => resetExpansion(prevTree));
+        return;
+      }
+      
+      setNavTree(prevTree => {
+        const searchResult = searchNodes(originalTree, term)
+          .filter(node => node.matches || node.children?.some(child => child.matches));
+        return searchResult;
+      });
+    } catch (error) {
+      console.error('Error updating search:', error);
+      setNavTree(prevTree => prevTree); // Keep current tree on error
+    }
+  }, [originalTree, searchNodes, resetExpansion]);
 
   /**
    * Toggles expansion state of a specific node
    * @param {NavNode} targetNode - Node to toggle
    */
-  const toggleNode = (targetNode) => {
+  const toggleNode = useCallback((targetNode) => {
     if (!targetNode?.id) {
       console.error('Invalid node provided to toggleNode');
       return;
@@ -133,15 +135,12 @@ export const NavProvider = ({ children, initialTree = [] }) => {
     };
 
     try {
-      const newNavTree = updateNodes(navTree);
-      const newOriginalTree = updateNodes(originalTree);
-      
-      setNavTree(newNavTree);
-      setOriginalTree(newOriginalTree);
+      setNavTree(prevNavTree => updateNodes(prevNavTree));
+      setOriginalTree(prevOriginalTree => updateNodes(prevOriginalTree));
     } catch (error) {
       console.error('Error toggling node:', error);
     }
-  };
+  }, []);
 
   const contextValue = {
     navTree,

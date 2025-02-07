@@ -4,8 +4,11 @@ import { NavProvider } from './NavContext';
 import { Menu } from 'lucide-react';
 import SearchSite from './SearchSite';
 import SideNavigation from './SideNavigation';
+import { useSidebar } from '../SidebarContext';
 
-const Sidebar = ({ isSidebarCollapsed, setSidebarCollapsed, activeSection }) => {
+const Sidebar = ({ isSidebarCollapsed, activeSection }) => {
+  const { toggleSidebar } = useSidebar();
+
   return (
     <motion.div
       layout
@@ -20,7 +23,7 @@ const Sidebar = ({ isSidebarCollapsed, setSidebarCollapsed, activeSection }) => 
           </div>
         )}
         <motion.button
-          onClick={() => setSidebarCollapsed(!isSidebarCollapsed)}
+          onClick={toggleSidebar}
           className="py-1.5 px-2 hover:bg-gray-800/30 rounded-lg flex items-center justify-center w-10"
           whileHover={{ rotate: 90 }}
           whileTap={{ scale: 0.97 }}
@@ -33,7 +36,7 @@ const Sidebar = ({ isSidebarCollapsed, setSidebarCollapsed, activeSection }) => 
         isCollapsed={isSidebarCollapsed}
         activeSection={activeSection}
       />
-      </motion.div>
+    </motion.div>
   );
 };
 

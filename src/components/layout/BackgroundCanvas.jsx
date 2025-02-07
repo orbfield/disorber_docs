@@ -1,4 +1,6 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useRef, useEffect, useCallback } from 'react';
+import { useDrag } from '../drag/useDrag';
+import { useZoom } from '../zoom/useZoom';
 
 /**
  * A React component that provides a draggable and zoomable canvas with an optional grid background.
@@ -12,152 +14,84 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
  * @returns {JSX.Element} A draggable and zoomable canvas component
  */
 const BackgroundCanvas = ({ children, showGrid = true, resetKey }) => {
-  // Constants for canvas configuration
   const GRID_SIZE = 50;
   const GRID_COLOR = 'rgba(255, 255, 255, 0)';
-  const MIN_SCALE = 0.1;
-  const MAX_SCALE = 5;
-  const ZOOM_FACTOR = 0.9;
-
-  // Refs and state management
   const canvasRef = useRef(null);
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  const [scale, setScale] = useState(1);
 
-  /**
-   * Gets the DOM element currently under the pointer/touch event
-   * @param {MouseEvent|TouchEvent} e - The pointer or touch event
-   * @returns {Element|null} The element under the pointer
-   */
-  const getElementUnderPointer = useCallback((e) => {
-    if (e.touches) {
-      const touch = e.touches[0];
-      return document.elementFromPoint(touch.clientX, touch.clientY);
-    }
-    return e.target;
+  const shouldStartDrag = useCallback((e) => {
+    const element = e.touches ? document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY) : e.target;
+    return !(!e.touches && element?.closest?.('.window-draggable'));
   }, []);
 
-  /**
-   * Extracts pointer position from either mouse or touch event
-   * @param {MouseEvent|TouchEvent} e - The pointer or touch event
-   * @returns {{clientX: number, clientY: number}} Normalized pointer coordinates
-   */
-  const getPointerPosition = useCallback((e) => {
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    return { clientX, clientY };
-  }, []);
+  const { isDragging, position, handlers, setPosition, dragStart } = useDrag({
+    shouldStartDrag
+  });
 
-  /**
-   * Checks if the pointer is over a draggable window element
-   * @param {Element} element - The element to check
-   * @param {boolean} isTouchEvent - Whether the event is a touch event
-   * @returns {boolean} True if over a draggable window
-   */
-  const isOverDraggableWindow = useCallback((element, isTouchEvent) => {
-    return !isTouchEvent && element?.closest?.('.window-draggable');
-  }, []);
+  const { scale, handleWheel, resetZoom, setScale } = useZoom({
+    onZoom: useCallback(({ scale, position: newPosition }) => {
+      setPosition(() => newPosition);
+    }, [])
+  });
 
-  // Event handlers
-  const handleStart = useCallback((e) => {
+  const wheelHandler = useCallback((e) => {
+    const element = e.target;
+    if (element?.closest?.('.window-draggable')) return;
     e.preventDefault();
-    e.stopPropagation();
+    handleWheel(e, position, canvasRef);
+  }, [handleWheel, position]);
 
-    const elementUnderPointer = getElementUnderPointer(e);
-    if (isOverDraggableWindow(elementUnderPointer, e.touches)) return;
-    
-    const { clientX, clientY } = getPointerPosition(e);
-    setIsDragging(true);
-    setDragStart({
-      x: clientX - position.x,
-      y: clientY - position.y
-    });
-  }, [position, getElementUnderPointer, getPointerPosition, isOverDraggableWindow]);
-
-  const handleMouseMove = useCallback((e) => {
-    if (!isDragging) return;
-
-    const elementUnderPointer = getElementUnderPointer(e);
-    if (isOverDraggableWindow(elementUnderPointer, e.touches)) {
-      setIsDragging(false);
-      return;
-    }
-
-    const { clientX, clientY } = getPointerPosition(e);
-    setPosition({
-      x: clientX - dragStart.x,
-      y: clientY - dragStart.y
-    });
-  }, [isDragging, dragStart, getElementUnderPointer, getPointerPosition, isOverDraggableWindow]);
-
-  /**
-   * Handles mouse wheel events for zooming
-   * @param {WheelEvent} e - The wheel event
-   */
-  const handleWheel = useCallback((e) => {
-    const elementUnderPointer = e.target;
-    if (elementUnderPointer?.closest?.('.window-draggable')) return;
-
-    e.preventDefault();
-    const rect = canvasRef.current.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
-
-    const zoomFactor = e.deltaY > 0 ? ZOOM_FACTOR : 1 / ZOOM_FACTOR;
-    const newScale = Math.min(Math.max(scale * zoomFactor, MIN_SCALE), MAX_SCALE);
-
-    const x = mouseX - (mouseX - position.x) * (newScale / scale);
-    const y = mouseY - (mouseY - position.y) * (newScale / scale);
-
-    setScale(newScale);
-    setPosition({ x, y });
-  }, [scale, position]);
-
-  const handleMouseUp = useCallback(() => {
-    setIsDragging(false);
-  }, []);
-
-  // Effects for event listeners and reset handling
+  // Handle wheel events
   useEffect(() => {
     const canvas = canvasRef.current;
     if (canvas) {
-      canvas.addEventListener('wheel', handleWheel, { passive: false });
-      return () => canvas.removeEventListener('wheel', handleWheel);
+      canvas.addEventListener('wheel', wheelHandler, { passive: false });
+      return () => canvas.removeEventListener('wheel', wheelHandler);
     }
-  }, [handleWheel]);
+  }, [wheelHandler]);
 
+  // Handle reset
   useEffect(() => {
-    setPosition({ x: 0, y: 0 });
-    setScale(1);
-  }, [resetKey]);
+    setPosition(() => ({ x: 0, y: 0 }));
+    resetZoom();
+  }, [resetKey, resetZoom]);
 
+  // Handle move events with scale
   useEffect(() => {
-    const handleTouchMove = (e) => {
+    if (!isDragging) return;
+
+    const moveHandler = (e) => {
       e.preventDefault();
-      handleMouseMove(e);
+
+      if (shouldStartDrag && !shouldStartDrag(e)) {
+        return;
+      }
+
+      handlers.onMouseMove(e, scale);
     };
 
-    window.addEventListener('mouseup', handleMouseUp);
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('touchend', handleMouseUp);
-    window.addEventListener('touchmove', handleTouchMove, { passive: false });
+    const endHandler = () => {
+      handlers.onMouseUp();
+    };
+
+    window.addEventListener('mousemove', moveHandler);
+    window.addEventListener('touchmove', moveHandler, { passive: false });
+    window.addEventListener('mouseup', endHandler);
+    window.addEventListener('touchend', endHandler);
 
     return () => {
-      window.removeEventListener('mouseup', handleMouseUp);
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('touchend', handleMouseUp);
-      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('mousemove', moveHandler);
+      window.removeEventListener('touchmove', moveHandler);
+      window.removeEventListener('mouseup', endHandler);
+      window.removeEventListener('touchend', endHandler);
     };
-  }, [handleMouseMove, handleMouseUp]);
+  }, [isDragging, shouldStartDrag, handlers, scale]);
 
   return (
     <div
       ref={canvasRef}
       className={`w-full h-full overflow-hidden relative select-none ${isDragging ? 'cursor-grabbing animate-grab' : 'cursor-grab animate-release'}`}
-      onMouseDown={handleStart}
-      onTouchStart={handleStart}
+      onMouseDown={handlers.onMouseDown}
+      onTouchStart={handlers.onTouchStart}
       style={{
         pointerEvents: isDragging ? 'all' : 'auto',
         background: `
