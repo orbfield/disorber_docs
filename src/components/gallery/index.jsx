@@ -138,8 +138,6 @@ function ImageThumbnail({ src, alt, isDirectory, onClick }) {
  * @returns {JSX.Element} GalleryWindow component
  */
 function GalleryWindow({ id, imageUrl, toggleVisibility }) {
-  const { bringToFront } = useWindowContext();
-  
   /**
    * Extracts the image filename from a URL
    * @param {string} url - The full image URL
@@ -158,34 +156,26 @@ function GalleryWindow({ id, imageUrl, toggleVisibility }) {
     <WindowWrapper
       id={id}
       className="bg-gray-800/70 backdrop-blur-lg border border-cyan-500/20 flex-lg shadow-lg"
-      onClick={() => bringToFront(id)}
     >
       <div 
+        data-window-header
         className="flex items-center justify-between py-1 px-2 border-b border-gray-700 bg-gray-900 flex-t-lg"
-        style={{ cursor: 'move' }}
-        onClick={(e) => {
-          e.stopPropagation();
-          bringToFront(id);
-        }}
       >
         <div className="flex items-center gap-2 px-2">
           <Layout className="w-4 h-4 text-cyan-500" />
           <h2 className="text-white font-semibold text-sm truncate max-w-[280px]">{getImageName(imageUrl)}</h2>
         </div>
         <button
-          onClick={toggleVisibility}
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleVisibility();
+          }}
           className="text-gray-400 hover:text-white transition-colors w-8 h-8 flex items-center justify-center flex-lg hover:bg-gray-700"
         >
           ×
         </button>
       </div>
-      <div 
-        className="h-full bg-black/10"
-        onClick={(e) => {
-          e.stopPropagation();
-          bringToFront(id);
-        }}
-      >
+      <div className="h-full bg-black/10">
         <img src={imageUrl} alt="" className="w-full h-full object-contain" />
       </div>
     </WindowWrapper>

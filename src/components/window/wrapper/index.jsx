@@ -1,14 +1,148 @@
-import React, { useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
+import React, { useEffect } from 'react';
 import { useWindowContext } from '../index.jsx';
+import { useZoom } from '../../canvas/ZoomContext';
+import { useScaledDrag, DragProvider } from './DndKit';
 
-export const WindowWrapper = ({ 
+/**
+ * @typedef {Object} Position
+ * @property {number} x - The x coordinate
+ * @property {number} y - The y coordinate
+ */
+
+/**
+ * @typedef {Object} WindowData
+ * @property {Position} position - Current window position
+ * @property {boolean} isVisible - Window visibility state
+ * @property {number} zIndex - Window stack order
+ */
+
+/**
+ * @typedef {Object} WindowProps
+ * @property {string} id - Unique identifier for the window
+ * @property {React.ReactNode} children - Window content including header and body
+ * @property {Position} initialPosition - Starting position of the window
+ * @property {string} [className] - Additional CSS classes
+ * @property {Object} [dragConstraints] - Constraints for dragging behavior
+ */
+
+// Drag style configurations
+const DRAG_STYLES = {
+  dragging: 'cursor-move',
+  idle: 'cursor-move',
+  base: 'absolute window-draggable'
+};
+
+/**
+ * Splits children into header and content components
+ * @param {React.ReactNode} children - Child components to split
+ * @returns {[React.ReactElement, React.ReactElement[]]} Tuple of [header, content]
+ */
+const splitWindowChildren = (children) => {
+  const childArray = React.Children.toArray(children);
+  const header = childArray.find(child => child.props?.['data-window-header']);
+  const content = childArray.filter(child => !child.props?.['data-window-header']);
+  return [header, content];
+};
+
+/**
+ * Internal component that handles the window content and interactions
+ * @param {WindowProps & {
+ *   windowData: WindowData,
+ *   registerWindow: (id: string, position: Position) => void,
+ *   updateWindowPosition: (id: string, position: Position) => void,
+ *   bringToFront: (id: string) => void
+ * }} props
+ */
+const WindowContent = React.memo(({ 
   id,
   children,
-  initialPosition = { x: 0, y: 0 },
+  initialPosition,
   className = '',
-  dragConstraints = null
+  dragConstraints,
+  windowData,
+  registerWindow,
+  updateWindowPosition,
+  bringToFront
 }) => {
+  // Get current zoom scale
+  const { scale } = useZoom();
+
+  // Register window with management system on mount
+  useEffect(() => {
+    registerWindow(id, initialPosition);
+  }, [id, initialPosition, registerWindow]);
+
+  // Split children into header and content
+  const [header, content] = splitWindowChildren(children);
+
+  // Setup drag handling with scaled coordinates
+  const {
+    setNodeRef,
+    attributes,
+    listeners,
+    style: dragStyle,
+    isDragging: isDraggingDnd,
+    transform: dndTransform
+  } = useScaledDrag({
+    id,
+    position: windowData.position
+  });
+
+  // Bring window to front when starting drag
+  useEffect(() => {
+    if (isDraggingDnd) {
+      bringToFront(id);
+    }
+  }, [isDraggingDnd, bringToFront, id]);
+
+  // Compute dynamic styles
+  const headerClassName = `${header.props.className || ''} ${
+    isDraggingDnd ? DRAG_STYLES.dragging : DRAG_STYLES.idle
+  }`;
+
+  const basePosition = {
+    x: windowData.position.x * scale,
+    y: windowData.position.y * scale
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={{
+        display: windowData.isVisible ? 'block' : 'none',
+        position: 'absolute',
+        transform: `translate3d(${basePosition.x + (dndTransform?.x || 0)}px, ${basePosition.y + (dndTransform?.y || 0)}px, 0)`,
+        zIndex: windowData.zIndex,
+        touchAction: 'none',
+        ...dragStyle
+      }}
+      className={`${DRAG_STYLES.base} ${className}`}
+      onClick={() => bringToFront(id)}
+    >
+      <div {...attributes} {...listeners} className="h-full">
+        {/* Header */}
+        {React.cloneElement(header, {
+          className: headerClassName
+        })}
+        
+        {/* Content */}
+        <div className="pointer-events-auto">
+          {content}
+        </div>
+      </div>
+    </div>
+  );
+});
+
+// Set display name for debugging
+WindowContent.displayName = 'WindowContent';
+
+/**
+ * Window wrapper component providing window management capabilities
+ * Handles window registration, positioning, and drag interactions
+ * @param {WindowProps} props
+ */
+export const WindowWrapper = (props) => {
   const { 
     windows,
     registerWindow,
@@ -16,71 +150,31 @@ export const WindowWrapper = ({
     bringToFront
   } = useWindowContext();
 
-  const windowRef = useRef(null);
-
-  useEffect(() => {
-    registerWindow(id, initialPosition);
-  }, [id, initialPosition, registerWindow]);
-
-  const windowData = windows[id];
+  // Get window data from context
+  const windowData = windows[props.id];
   if (!windowData) return null;
 
-  const checkBounds = (x, y) => {
-    const rect = windowRef.current?.getBoundingClientRect();
-    if (!rect) return true;
+  const { scale } = useZoom();
 
-    const isInViewport = 
-      x >= -rect.width / 2 &&
-      x <= window.innerWidth - rect.width / 2 &&
-      y >= -rect.height / 2 &&
-      y <= window.innerHeight - rect.height / 2;
-
-    return isInViewport;
+  const handleDragEnd = (event) => {
+    if (event.delta) {
+      const newPosition = {
+        x: windowData.position.x + (event.delta.x / scale),
+        y: windowData.position.y + (event.delta.y / scale)
+      };
+      updateWindowPosition(props.id, newPosition);
+    }
   };
 
   return (
-    <motion.div
-      ref={windowRef}
-      drag
-      dragMomentum={false}
-      dragElastic={0}
-      dragTransition={{ power: 0 }}
-      style={{
-        display: windowData.isVisible ? 'block' : 'none',
-        touchAction: 'none'
-      }}
-      initial={{ 
-        x: windowData.position.x,
-        y: windowData.position.y,
-        scale: 0.95,
-        opacity: 0
-      }}
-      animate={{ 
-        x: windowData.position.x,
-        y: windowData.position.y,
-        scale: 1,
-        opacity: 1,
-        zIndex: windowData.zIndex
-      }}
-      transition={{
-        type: "spring",
-        stiffness: 500,
-        damping: 30,
-        opacity: { duration: 0.1 }
-      }}
-      onDragStart={(e) => {
-        e.stopPropagation();
-        bringToFront(id);
-      }}
-      onDragEnd={(e, info) => {
-        e.stopPropagation();
-        const newX = windowData.position.x + info.offset.x;
-        const newY = windowData.position.y + info.offset.y;
-        updateWindowPosition(id, { x: newX, y: newY });
-      }}
-      className={`absolute window-draggable ${className}`}
-    >
-      {children}
-    </motion.div>
+    <DragProvider onDragEnd={handleDragEnd}>
+      <WindowContent
+        {...props}
+        windowData={windowData}
+        registerWindow={registerWindow}
+        updateWindowPosition={updateWindowPosition}
+        bringToFront={bringToFront}
+      />
+    </DragProvider>
   );
 };

@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useCallback } from 'react';
 import { useDrag } from './useDrag';
 import { useZoom } from './useZoom';
+import { ZoomProvider } from './ZoomContext';
 
 /**
  * A React component that provides a draggable and zoomable canvas with an optional grid background.
@@ -13,14 +14,14 @@ import { useZoom } from './useZoom';
  * @param {any} props.resetKey - Key to trigger canvas reset (position and scale)
  * @returns {JSX.Element} A draggable and zoomable canvas component
  */
-const BackgroundCanvas = ({ children, showGrid = true, resetKey }) => {
+const CanvasContent = ({ children, showGrid = true, resetKey }) => {
   const GRID_SIZE = 50;
   const GRID_COLOR = 'rgba(255, 255, 255, 0)';
   const canvasRef = useRef(null);
 
   const shouldStartDrag = useCallback((e) => {
     const element = e.touches ? document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY) : e.target;
-    return !(!e.touches && element?.closest?.('.window-draggable'));
+    return !element?.closest?.('.window-draggable');
   }, []);
 
   const { isDragging, position, handlers, setPosition } = useDrag({
@@ -135,6 +136,14 @@ const BackgroundCanvas = ({ children, showGrid = true, resetKey }) => {
         {children}
       </div>
     </div>
+  );
+};
+
+const BackgroundCanvas = (props) => {
+  return (
+    <ZoomProvider>
+      <CanvasContent {...props} />
+    </ZoomProvider>
   );
 };
 
