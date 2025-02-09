@@ -197,8 +197,8 @@ const groupFilesByVariants = (files) => {
  * @returns {Object} Gallery-compatible image object
  */
 const createGalleryImage = (baseName, versions) => ({
-  thumb: getMediaUrl(versions.variants.small.path),
-  full: getMediaUrl(versions.variants.medium.path),
+  thumb: getMediaUrl(versions.variants.medium.path),
+  full: getMediaUrl(versions.variants.large.path),
   fullRes: versions.variants.custom 
     ? getMediaUrl(versions.variants.custom.path)
     : getMediaUrl(versions.variants.large.path),
@@ -232,7 +232,7 @@ const processMediaFiles = (files) => {
   const imageGroups = groupFilesByVariants(files);
   
   return Object.entries(imageGroups)
-    .filter(([_, versions]) => versions.variants.small) // Ensure thumbnail exists
+    .filter(([_, versions]) => versions.variants.medium) // Ensure 300px thumbnail exists
     .map(([baseName, versions]) => createGalleryImage(baseName, versions));
 };
 
