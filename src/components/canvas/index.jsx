@@ -97,14 +97,14 @@ const CanvasContent = ({ children, showGrid = true, resetKey }) => {
         pointerEvents: isDragging ? 'all' : 'auto',
         background: `
           repeating-linear-gradient(45deg,
-            rgb(17, 24, 39) 0%,
-            rgb(31, 41, 55) 12.5%,
-            rgb(17, 24, 39) 25%
+            rgb(146, 146, 145) 0%,
+            rgb(50, 50, 50) 12.5%,
+            rgb(114, 114, 114) 25%
           ),
           repeating-linear-gradient(-45deg,
-            rgb(17, 24, 39) 0%,
-            rgb(31, 41, 55) 12.5%,
-            rgb(17, 24, 39) 25%
+            rgb(31, 41, 55) 0%,
+            rgb(49, 63, 83) 12.5%,
+            rgb(58, 70, 88) 25%
           )
           ${showGrid ? `,
           linear-gradient(to right, ${GRID_COLOR} 1px, transparent 1px),

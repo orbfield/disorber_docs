@@ -13,6 +13,7 @@ import { useNavigate } from 'react-router-dom';
  * @property {string} [alt] - Alternative text for the image
  * @property {boolean} [isDirectory] - Whether this image represents a directory
  * @property {string} [directoryId] - ID of the directory if this is a directory preview
+ * @property {Array} [thumbnails] - Array of thumbnail images for directory previews
  */
 
 /**
@@ -65,14 +66,16 @@ export function Gallery({ images = [] }) {
   };
 
   return (
-    <div className="p-4">
-      <div className="grid grid-cols-3 gap-4">
+    <div className="p-4 container mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
         {images.map((img, idx) => (
           <ImageThumbnail
             key={idx}
             src={img.thumb}
             alt={img.alt || ''}
             isDirectory={img.isDirectory}
+            directoryId={img.directoryId}
+            thumbnails={img.thumbnails}
             onClick={() => handleOpenWindow(`gallery-window-${idx}`, img)}
           />
         ))}
@@ -81,14 +84,15 @@ export function Gallery({ images = [] }) {
       {Array.from(activeWindows).map(id => {
         const idx = parseInt(id.split('-').pop());
         const img = images[idx];
-        return (
+        // Only render window if it's not a directory and has a full image URL
+        return !img.isDirectory && img.full ? (
           <GalleryWindow
             key={id}
             id={id}
             imageUrl={img.full}
             toggleVisibility={() => toggleWindowVisibility(id)}
           />
-        );
+        ) : null;
       })}
     </div>
   );
@@ -100,10 +104,44 @@ export function Gallery({ images = [] }) {
  * @param {string} props.src - Source URL of the thumbnail image
  * @param {string} props.alt - Alternative text for the image
  * @param {boolean} [props.isDirectory] - Whether this thumbnail represents a directory
+ * @param {string} [props.directoryId] - ID of the directory if this is a directory preview
+ * @param {Array} [props.thumbnails] - Array of thumbnail images for directory previews
  * @param {() => void} props.onClick - Click handler for the thumbnail
  * @returns {JSX.Element} ImageThumbnail component
  */
-function ImageThumbnail({ src, alt, isDirectory, onClick }) {
+function ImageThumbnail({ src, alt, isDirectory, directoryId, thumbnails, onClick }) {
+  if (isDirectory && thumbnails) {
+    return (
+      <motion.div
+        className="relative group cursor-pointer overflow-hidden rounded-lg bg-gray-900"
+        whileHover={{ scale: 1.02 }}
+        onClick={onClick}
+      >
+        <div className="aspect-square w-full">
+          <div className="grid grid-cols-2 gap-2 p-2 h-full">
+            {thumbnails.map((thumb, idx) => (
+              <div key={idx} className="aspect-square overflow-hidden">
+                <img
+                  src={thumb.thumb}
+                  alt={thumb.alt}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+          <div className="flex flex-col items-center gap-2">
+            <Folder className="w-6 h-6 text-white" />
+            <span className="text-white text-lg font-semibold">
+              {alt}
+            </span>
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
+
   return (
     <motion.div
       className="relative group cursor-pointer overflow-hidden rounded-lg"
@@ -117,9 +155,8 @@ function ImageThumbnail({ src, alt, isDirectory, onClick }) {
       />
       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
         <div className="flex items-center gap-2">
-          {isDirectory && <Folder className="w-4 h-4" />}
           <span className="text-white text-sm">
-            {isDirectory ? 'Open Directory' : 'View Full Size'}
+            View Full Size
           </span>
         </div>
       </div>
@@ -174,19 +211,28 @@ function GalleryWindow({ id, imageUrl, toggleVisibility }) {
 Gallery.propTypes = {
   images: PropTypes.arrayOf(
     PropTypes.shape({
-      thumb: PropTypes.string.isRequired,
-      full: PropTypes.string.isRequired,
+      thumb: PropTypes.string,
+      full: PropTypes.string,
       alt: PropTypes.string,
       isDirectory: PropTypes.bool,
-      directoryId: PropTypes.string
+      directoryId: PropTypes.string,
+      thumbnails: PropTypes.arrayOf(
+        PropTypes.shape({
+          thumb: PropTypes.string.isRequired,
+          full: PropTypes.string.isRequired,
+          alt: PropTypes.string
+        })
+      )
     })
   )
 };
 
 ImageThumbnail.propTypes = {
-  src: PropTypes.string.isRequired,
+  src: PropTypes.string,
   alt: PropTypes.string.isRequired,
   isDirectory: PropTypes.bool,
+  directoryId: PropTypes.string,
+  thumbnails: PropTypes.array,
   onClick: PropTypes.func.isRequired
 };
 

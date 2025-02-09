@@ -33,17 +33,40 @@ const hasSubdirectories = (node) => {
   return node.children?.some(child => !child.type) || false;
 };
 
+// Configuration for gallery directory previews
+const PREVIEW_CONFIG = {
+  thumbnailsPerDirectory: 4  // Number of thumbnails to show per directory preview
+};
+
 /**
- * Gets a random 50px thumbnail from a directory's files
+ * Gets random 50px thumbnails from a directory's files
  * @param {Array} files - Array of files
- * @returns {Object|null} Random 50px thumbnail file or null
+ * @param {number} count - Number of thumbnails to return
+ * @returns {Array} Array of random thumbnail files
  */
-const getRandomThumbnail = (files) => {
+const getRandomThumbnails = (files, count) => {
   const thumbnails = files.filter(file => {
     const metadata = parseGifFilename(file.text);
     return metadata && metadata.resolution === 50;
   });
-  return thumbnails.length > 0 ? thumbnails[Math.floor(Math.random() * thumbnails.length)] : null;
+
+  // If we don't have enough thumbnails, return all we have
+  if (thumbnails.length <= count) {
+    return thumbnails;
+  }
+
+  // Randomly select unique thumbnails
+  const selected = new Set();
+  const result = [];
+  while (result.length < count && result.length < thumbnails.length) {
+    const randomIndex = Math.floor(Math.random() * thumbnails.length);
+    const thumbnail = thumbnails[randomIndex];
+    if (!selected.has(thumbnail.path)) {
+      selected.add(thumbnail.path);
+      result.push(thumbnail);
+    }
+  }
+  return result;
 };
 
 /**
@@ -57,19 +80,44 @@ const extractMediaFiles = (nodes, targetPath) => {
   if (!targetPath || hasSubdirectories(nodes.find(n => n.id === targetPath) || { children: [] })) {
     return nodes
       .filter(node => !node.type && node.children) // Only directories
-      .map(dir => {
-        const allFiles = findAllGifFiles([dir]);
-        const thumbnail = getRandomThumbnail(allFiles);
-        if (!thumbnail) return null;
+      .flatMap(dir => {
+        // If we're in a specific directory (not root) and it has only one subdirectory
+        if (targetPath && dir.children.length === 1 && !dir.children[0].type) {
+          const subdir = dir.children[0];
+          const allFiles = findAllGifFiles([subdir]);
+          const thumbnails = getRandomThumbnails(allFiles, PREVIEW_CONFIG.thumbnailsPerDirectory);
+          if (thumbnails.length === 0) return [];
+          
+          return [{
+            thumbnails: thumbnails.map(thumbnail => ({
+              thumb: getMediaUrl(thumbnail.path),
+              full: getMediaUrl(thumbnail.path),
+              alt: thumbnail.alt || `${subdir.text} preview`
+            })),
+            directoryId: `${targetPath}/${subdir.id.split('/').pop()}`,
+            directoryName: subdir.text,
+            isDirectory: true,
+            alt: subdir.text
+          }];
+        }
         
-        return {
-          ...thumbnail,
-          isDirectoryPreview: true,
-          directoryId: dir.id,
-          directoryName: dir.text
-        };
-      })
-      .filter(Boolean); // Remove nulls
+        // Otherwise process directory normally
+        const allFiles = findAllGifFiles([dir]);
+        const thumbnails = getRandomThumbnails(allFiles, PREVIEW_CONFIG.thumbnailsPerDirectory);
+        if (thumbnails.length === 0) return [];
+        
+        return [{
+          thumbnails: thumbnails.map(thumbnail => ({
+            thumb: getMediaUrl(thumbnail.path),
+            full: getMediaUrl(thumbnail.path),
+            alt: thumbnail.alt || `${dir.text} preview`
+          })),
+          directoryId: targetPath ? `${targetPath}/${dir.id.split('/').pop()}` : dir.id,
+          directoryName: dir.text,
+          isDirectory: true,
+          alt: dir.text
+        }];
+      }); // flatMap automatically removes empty arrays
   }
   
   // For leaf directories, return all files
@@ -169,15 +217,14 @@ const createGalleryImage = (baseName, versions) => ({
  */
 const processMediaFiles = (files) => {
   // Handle directory previews
-  const directoryPreviews = files.filter(f => f.isDirectoryPreview);
+  const directoryPreviews = files.filter(f => f.isDirectory);
   if (directoryPreviews.length > 0) {
-    return directoryPreviews.map(file => ({
-      thumb: getMediaUrl(file.path),
-      full: getMediaUrl(file.path),
-      alt: file.directoryName,
-      title: file.directoryName,
+    return directoryPreviews.map(dir => ({
+      thumb: dir.thumbnails[0]?.thumb, // Use first thumbnail as preview
+      thumbnails: dir.thumbnails,
+      alt: dir.alt,
       isDirectory: true,
-      directoryId: file.directoryId
+      directoryId: dir.directoryId
     }));
   }
 
