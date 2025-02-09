@@ -84,8 +84,8 @@ export function Gallery({ images = [] }) {
       {Array.from(activeWindows).map(id => {
         const idx = parseInt(id.split('-').pop());
         const img = images[idx];
-        // Only render window if it's not a directory and has a full image URL
-        return !img.isDirectory && img.full ? (
+        // Only render window if image exists, is not a directory, and has a full image URL
+        return img && !img.isDirectory && img.full ? (
           <GalleryWindow
             key={id}
             id={id}

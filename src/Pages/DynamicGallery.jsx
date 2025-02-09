@@ -232,7 +232,9 @@ const processMediaFiles = (files) => {
   const imageGroups = groupFilesByVariants(files);
   
   return Object.entries(imageGroups)
-    .filter(([_, versions]) => versions.variants.medium) // Ensure 300px thumbnail exists
+    .filter(([_, versions]) => 
+      versions.variants.medium && versions.variants.large // Ensure both 300px and 1000px exist
+    )
     .map(([baseName, versions]) => createGalleryImage(baseName, versions));
 };
 
