@@ -1,6 +1,7 @@
 import React, { useEffect, useState, createContext, useContext } from 'react';
 import { WindowWrapper } from '../window/wrapper';
 
+// Create context for Pyodide worker management
 const PanelContext = createContext();
 
 export const usePanelContext = () => {
@@ -11,12 +12,14 @@ export const usePanelContext = () => {
   return context;
 };
 
+// Provider component for managing Pyodide worker lifecycle
 export const PanelProvider = ({ children }) => {
   const [worker, setWorker] = useState(null);
   const [error, setError] = useState(null);
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
+    // Create worker and handle initialization
     const pyodideWorker = new Worker(new URL('../../workers/pyodide.worker.js', import.meta.url));
 
     pyodideWorker.onmessage = (event) => {
@@ -31,11 +34,13 @@ export const PanelProvider = ({ children }) => {
 
     setWorker(pyodideWorker);
 
+    // Cleanup worker on unmount
     return () => {
       pyodideWorker.terminate();
     };
   }, []);
 
+  // Loading indicator component
   const LoadingIndicator = () => (
     <div className="fixed bottom-4 right-4 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg">
       <div className="flex items-center space-x-2">
@@ -60,6 +65,7 @@ export const PanelProvider = ({ children }) => {
   );
 };
 
+// Panel window component for visualization
 export const PanelWindow = ({ 
   id, 
   initialPosition = { x: 100, y: 100 },
@@ -80,7 +86,6 @@ export const PanelWindow = ({
       if (messageId !== targetId) return;
 
       if (type === 'result') {
-        // If result is HTML from Panel, insert it into the target div
         const targetDiv = document.getElementById(targetId);
         if (targetDiv && typeof result === 'string' && result.trim().startsWith('<')) {
           targetDiv.innerHTML = result;
@@ -96,18 +101,17 @@ export const PanelWindow = ({
 
     worker.addEventListener('message', messageHandler);
 
+    // Execute Python code in worker
     worker.postMessage({
       type: 'execute',
       code: `
 import panel as pn
 import numpy as np
 
-# Get the target div
 target = js.document.getElementById("${targetId}")
 if target:
     target.innerHTML = ""
 
-# Execute visualization code
 ${pythonCode}
       `,
       id: targetId
