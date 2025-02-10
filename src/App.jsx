@@ -6,7 +6,8 @@ import { NavProvider } from './components/layout/Sidebar/NavContext';
 import { scanMediaDirectory } from './media/mediaScanner';
 
 const DynamicGalleryPage = lazy(() => import('./Pages/DynamicGallery'));
-const PyodideTestPage = lazy(() => import('./components/PyodideTest'));
+
+const PanelTestPage = lazy(() => import('./Pages/PanelTest'));
 
 const Loading = () => {
   return (
@@ -25,14 +26,22 @@ const App = () => {
       try {
         const mediaTreeData = await scanMediaDirectory();
         
-        const navigationTree = [{
-          id: 'gallery',
-          text: 'Gallery',
-          icon: 'Image',
-          isExpanded: false,
-          children: mediaTreeData,
-          path: 'gallery'
-        }];
+        const navigationTree = [
+          {
+            id: 'gallery',
+            text: 'Gallery',
+            icon: 'Image',
+            isExpanded: false,
+            children: mediaTreeData,
+            path: 'gallery'
+          },
+          {
+            id: 'panel',
+            text: 'Panel Test',
+            icon: 'Graph',
+            path: 'panel-test'
+          }
+        ];
         
         setMediaTree(navigationTree);
         
@@ -55,10 +64,10 @@ const App = () => {
               )
             },
             {
-              path: "/pyodide-test",
+              path: "/panel-test",
               element: (
                 <Suspense fallback={<Loading />}>
-                  <PyodideTestPage />
+                  <PanelTestPage />
                 </Suspense>
               )
             }

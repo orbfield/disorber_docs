@@ -4,7 +4,24 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />
+    <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin" />
+    <meta http-equiv="Cross-Origin-Embedder-Policy" content="require-corp" />
     <title>Disorber</title>
+    <!-- Preload key Pyodide resources -->
+    <link rel="preload" href="https://cdn.jsdelivr.net/pyodide/v0.27.2/full/pyodide.asm.js" as="script" crossorigin="anonymous" type="text/javascript">
+    <link rel="preload" href="https://cdn.jsdelivr.net/pyodide/v0.27.2/full/pyodide.asm.wasm" as="fetch" crossorigin="anonymous" type="application/wasm">
+    
+    <script>
+      // Configure loading timeout
+      window.pyodideLoadTimeout = setTimeout(() => {
+        console.error('Pyodide script load timeout');
+      }, 30000);
+    </script>
+    
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.27.2/full/pyodide.js" 
+            crossorigin="anonymous"
+            onload="clearTimeout(window.pyodideLoadTimeout)"
+            onerror="console.error('Failed to load Pyodide script. Check your internet connection and try refreshing the page.')"></script>
   </head>
   <body>
     <div id="root"></div>
