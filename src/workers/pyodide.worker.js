@@ -10,8 +10,27 @@ async function initializePyodide() {
       indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.27.2/full/'
     });
     
-    // Load required packages for visualization
-    await pyodide.loadPackage(['numpy', 'pandas', 'panel', 'bokeh', 'datashader']);
+    // First load core dependencies
+    await pyodide.loadPackage(['micropip']);
+    const micropip = pyodide.pyimport('micropip');
+
+    // Load Panel and its dependencies in the correct order
+    await micropip.install([
+      'https://cdn.holoviz.org/panel/1.6.0/dist/wheels/bokeh-3.6.2-py3-none-any.whl',
+      'https://cdn.holoviz.org/panel/1.6.0/dist/wheels/panel-1.6.0-py3-none-any.whl'
+    ]);
+
+    // Load additional packages needed for visualization
+    await pyodide.loadPackage([
+      'numpy',
+      'pandas'
+    ]);
+
+    // Initialize Panel's JS dependencies
+    await pyodide.runPythonAsync(`
+      import panel as pn
+      pn.extension()
+    `);
     self.postMessage({ type: 'ready' });
   } catch (error) {
     self.postMessage({ 

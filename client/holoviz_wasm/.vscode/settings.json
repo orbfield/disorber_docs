@@ -1,0 +1,8 @@
+{
+    "python.defaultInterpreterPath": "C:\\Users\\fang\\anaconda3\\envs\\holoviz_wasm\\python.exe",
+    "jupyter.notebookFileRoot": "${workspaceFolder}",
+    "explorer.copyRelativePathSeparator": "/",
+    "python.analysis.extraPaths": [
+        "${workspaceFolder}/src"
+    ]
+}

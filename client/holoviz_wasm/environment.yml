@@ -13,3 +13,7 @@ dependencies:
   - pandas
   # Build tools
   - pyodide-build
+  # Development tools
+  - jupyter_bokeh
+  - ipykernel
+  - watchfiles

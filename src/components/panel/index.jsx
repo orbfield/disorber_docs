@@ -107,13 +107,26 @@ export const PanelWindow = ({
       code: `
 import panel as pn
 import numpy as np
+from bokeh.embed import json_item
+from bokeh.resources import CDN
 
+# Get the target element
 target = js.document.getElementById("${targetId}")
 if target:
     target.innerHTML = ""
 
+# Run the user's code
 ${pythonCode}
-      `,
+
+# Get the Panel app
+if isinstance(result, pn.viewable.Viewable):
+    # If it's a Panel component, convert to HTML
+    html = result._repr_html_()
+    js.document.getElementById("${targetId}").innerHTML = html
+else:
+    # Otherwise return the raw result
+    result
+`,
       id: targetId
     });
 

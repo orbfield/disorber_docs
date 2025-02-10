@@ -1,0 +1,20 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Open Panel in Simple Browser",
+            "command": "${input:openSimpleBrowser}",
+            "problemMatcher": []
+        }
+    ],
+    "inputs": [
+        {
+            "id": "openSimpleBrowser",
+            "type": "command",
+            "command": "simpleBrowser.show",
+            "args": [
+                "http://localhost:5006"
+            ]
+        }
+    ]
+}
