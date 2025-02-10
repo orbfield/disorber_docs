@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { WindowWrapper } from '../../components/window/wrapper';
+import { useWindowContext } from '../../components/window';
+import { Layout } from 'lucide-react';
 
 const PlotSVG = ({ data, width = 400, height = 300 }) => {
   if (!data || !data.x || !data.y) return null;
@@ -54,6 +57,39 @@ const PanelTest = () => {
   const [plotData, setPlotData] = useState(null);
   const [error, setError] = useState(null);
   const [worker, setWorker] = useState(null);
+  const [isWindowActive, setIsWindowActive] = useState(false);
+  const { toggleWindowVisibility, windows, registerWindow } = useWindowContext();
+  const windowId = "panel-test";
+
+  // Handle window management
+  const handleOpenWindow = () => {
+    const existingWindow = windows[windowId];
+    if (existingWindow && !existingWindow.isVisible) {
+      // If window exists but is hidden, just toggle visibility
+      toggleWindowVisibility(windowId);
+      return;
+    }
+    
+    if (!isWindowActive) {
+      const width = 800;
+      const height = 800;
+      // Position in viewport coordinates
+      const x = Math.max(0, Math.random() * (window.innerWidth - width));
+      const y = Math.max(0, Math.random() * (window.innerHeight - height));
+      
+      registerWindow(windowId, {
+        x, y, width, height,
+        onClose: () => setIsWindowActive(false)
+      });
+      
+      setIsWindowActive(true);
+    }
+  };
+
+  // Open window on mount
+  useEffect(() => {
+    handleOpenWindow();
+  }, []);
 
   // Initialize worker
   useEffect(() => {
@@ -110,9 +146,21 @@ json.dumps(data)
   }, [frequency, amplitude, phase, worker]);
 
   return (
-    <div className="p-4 space-y-4" style={{ height: '800px' }}>
-      <div className="border rounded-lg p-6 bg-white dark:bg-gray-800 h-full shadow-lg">
-        <h3 className="text-xl font-semibold mb-6">Interactive Sine Wave</h3>
+    <WindowWrapper
+      id={windowId}
+      className="bg-gray-800/70 backdrop-blur-lg border border-cyan-500/20 flex-lg shadow-lg"
+    >
+      <div 
+        data-window-header
+        className="flex items-center py-1 px-2 border-b border-gray-700 bg-gray-900 flex-t-lg"
+      >
+        <div className="flex items-center gap-2 px-2">
+          <Layout className="w-4 h-4 text-cyan-500" />
+          <h2 className="text-white font-semibold text-sm truncate max-w-[280px]">Interactive Sine Wave</h2>
+        </div>
+      </div>
+      <div className="h-full bg-black/10">
+        <div className="p-4 space-y-4">
         
         {error && (
           <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">
@@ -177,6 +225,7 @@ json.dumps(data)
         </div>
       </div>
     </div>
+  </WindowWrapper>
   );
 };
 

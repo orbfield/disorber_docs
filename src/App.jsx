@@ -3,6 +3,7 @@ import { createHashRouter, RouterProvider } from 'react-router-dom';
 import Layout from './components/layout/Layout';
 import { SidebarProvider } from './components/layout/SidebarContext';
 import { NavProvider } from './components/layout/Sidebar/NavContext';
+import { WindowProvider } from './components/window';
 import { scanMediaDirectory } from './media/mediaScanner';
 
 const DynamicGalleryPage = lazy(() => import('./Pages/DynamicGallery'));
@@ -48,11 +49,13 @@ const App = () => {
         const routes = [{
           path: "/",
           element: (
-            <NavProvider initialTree={navigationTree}>
-              <SidebarProvider>
-                <Layout />
-              </SidebarProvider>
-            </NavProvider>
+            <WindowProvider>
+              <NavProvider initialTree={navigationTree}>
+                <SidebarProvider>
+                  <Layout />
+                </SidebarProvider>
+              </NavProvider>
+            </WindowProvider>
           ),
           children: [
             {

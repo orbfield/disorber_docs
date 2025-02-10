@@ -23,6 +23,13 @@
 - Parameter handling and reactivity
 - WASM-based rendering architecture
 
+### 4. [Panel Test Window Integration](./panel-test-window-integration.md)
+- Window state management improvements
+- Styling consistency with Gallery component
+- Content area organization
+- Best practices and common issues
+- Integration steps and examples
+
 
 ## Key Features
 
@@ -56,3 +63,4 @@ To understand the application architecture:
 1. Start with the [Gallery System Architecture](./gallery-system-architecture.md) for a high-level overview
 2. Review the [Window System](./window-system.md) for window management details
 3. Explore the [HoloViz Integration](./holoviz-integration.md) for visualization capabilities
+4. See [Panel Test Window Integration](./panel-test-window-integration.md) for a practical example of implementing the window system
