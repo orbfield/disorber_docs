@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { PanelProvider, PanelWindow } from '../../components/panel';
-import { WindowProvider } from '../../components/window';
 
 const PlotSVG = ({ data, width = 400, height = 300 }) => {
   if (!data || !data.x || !data.y) return null;
@@ -19,7 +17,25 @@ const PlotSVG = ({ data, width = 400, height = 300 }) => {
   }).join(' ');
 
   return (
-    <svg width={width} height={height} className="bg-white dark:bg-gray-800">
+    <svg width={width} height={height} className="bg-white dark:bg-gray-800 rounded-lg">
+      {/* Add axes */}
+      <line 
+        x1={margin.left} 
+        y1={height - margin.bottom} 
+        x2={width - margin.right} 
+        y2={height - margin.bottom} 
+        stroke="currentColor" 
+        className="text-gray-400"
+      />
+      <line 
+        x1={margin.left} 
+        y1={margin.top} 
+        x2={margin.left} 
+        y2={height - margin.bottom} 
+        stroke="currentColor" 
+        className="text-gray-400"
+      />
+      {/* Add the sine wave */}
       <path
         d={pathData}
         stroke="currentColor"
@@ -31,105 +47,139 @@ const PlotSVG = ({ data, width = 400, height = 300 }) => {
   );
 };
 
-const PanelTestContent = () => {
-  const [windows, setWindows] = useState([]);
-  const [nextId, setNextId] = useState(1);
+const PanelTest = () => {
+  const [frequency, setFrequency] = useState(1.0);
+  const [amplitude, setAmplitude] = useState(1.0);
+  const [phase, setPhase] = useState(0.0);
+  const [plotData, setPlotData] = useState(null);
+  const [error, setError] = useState(null);
+  const [worker, setWorker] = useState(null);
 
+  // Initialize worker
+  useEffect(() => {
+    const pyodideWorker = new Worker(new URL('../../workers/pyodide.worker.js', import.meta.url));
+    
+    pyodideWorker.onmessage = (event) => {
+      const { result, error } = event.data;
+      if (error) {
+        console.error('Python Error:', error);
+        setError(error);
+      } else if (result) {
+        setPlotData(result);
+        setError(null);
+      }
+    };
 
-  const addSineWave = () => {
-    const id = `sine-wave-${nextId}`;
-    setWindows(prev => [...prev, {
-      id,
-      title: `Sine Wave ${nextId}`,
-      pythonCode: `
-import panel as pn
+    setWorker(pyodideWorker);
+
+    return () => {
+      pyodideWorker.terminate();
+    };
+  }, []);
+
+  // Function to update plot data
+  const updatePlot = async () => {
+    if (!worker) return;
+
+    const python = `
 import numpy as np
-from bokeh.plotting import figure
-from bokeh.models import ColumnDataSource
 
-# Enable Panel extension
-pn.extension()
+# Create data
+x = np.linspace(0, 10, 1000)
+y = ${amplitude} * np.sin(2 * np.pi * ${frequency} * x + ${phase})
 
-# Create initial data
-x = np.linspace(0, 10, 500)
-y = np.sin(2 * np.pi * x)
-source = ColumnDataSource(data={'x': x, 'y': y})
+# First convert numpy arrays to Python lists
+x_list = x.tolist()
+y_list = y.tolist()
 
-# Create the plot
-plot = figure(width=400, height=300, title='Interactive Sine Wave')
-plot.line('x', 'y', source=source, line_width=2)
+# Then create a plain Python dictionary
+result = {
+    'x': x_list,
+    'y': y_list
+}
 
-# Create widgets
-frequency = pn.widgets.FloatSlider(name='Frequency', value=1.0, start=0.1, end=5.0, step=0.1)
-amplitude = pn.widgets.FloatSlider(name='Amplitude', value=1.0, start=0.1, end=2.0, step=0.1)
-phase = pn.widgets.FloatSlider(name='Phase', value=0.0, start=0, end=2*np.pi, step=0.1)
+# Return the dictionary
+result
+    `;
 
-# Update function
-def update(event):
-    x = np.linspace(0, 10, 500)
-    y = amplitude.value * np.sin(2 * np.pi * frequency.value * x + phase.value)
-    source.data = {'x': x, 'y': y}
-
-# Link widgets to plot updates
-frequency.param.watch(update, 'value')
-amplitude.param.watch(update, 'value')
-phase.param.watch(update, 'value')
-
-# Create the app
-app = pn.Column(
-    pn.pane.Markdown('# Interactive Sine Wave Demo'),
-    pn.Row(
-        pn.Column(frequency, amplitude, phase),
-        plot
-    )
-)
-
-# Return the app
-app.servable()
-      `
-    }]);
-    setNextId(prev => prev + 1);
+    worker.postMessage({ python, id: Date.now() });
   };
 
+  // Update plot when controls change and worker is ready
+  useEffect(() => {
+    if (worker) {
+      updatePlot();
+    }
+  }, [frequency, amplitude, phase, worker]);
+
   return (
-    <div className="p-4 space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="space-x-4">
-          <button
-            onClick={addSineWave}
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-          >
-            Add Interactive Sine Wave
-          </button>
+    <div className="p-4 space-y-4" style={{ height: '800px' }}>
+      <div className="border rounded-lg p-6 bg-white dark:bg-gray-800 h-full shadow-lg">
+        <h3 className="text-xl font-semibold mb-6">Interactive Sine Wave</h3>
+        
+        {error && (
+          <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">
+            Error: {error}
+          </div>
+        )}
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-full">
+          <div className="space-y-8">
+            <div>
+              <label className="block text-sm font-medium mb-2">Frequency</label>
+              <input
+                type="range"
+                min="0.1"
+                max="5.0"
+                step="0.1"
+                value={frequency}
+                onChange={(e) => setFrequency(parseFloat(e.target.value))}
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+              />
+              <span className="text-sm mt-1 block">{frequency.toFixed(1)} Hz</span>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Amplitude</label>
+              <input
+                type="range"
+                min="0.1"
+                max="2.0"
+                step="0.1"
+                value={amplitude}
+                onChange={(e) => setAmplitude(parseFloat(e.target.value))}
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+              />
+              <span className="text-sm mt-1 block">{amplitude.toFixed(1)}</span>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Phase</label>
+              <input
+                type="range"
+                min="0"
+                max={2 * Math.PI}
+                step="0.1"
+                value={phase}
+                onChange={(e) => setPhase(parseFloat(e.target.value))}
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+              />
+              <span className="text-sm mt-1 block">{(phase / Math.PI).toFixed(2)}π rad</span>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-center p-4 bg-white dark:bg-gray-900 rounded-lg shadow-inner" style={{ minHeight: '500px' }}>
+            {plotData ? (
+              <PlotSVG data={plotData} width={600} height={400} />
+            ) : (
+              <div className="text-gray-500">
+                {worker ? 'Generating plot...' : 'Initializing Python...'}
+              </div>
+            )}
+          </div>
         </div>
       </div>
-
-      <div className="text-sm text-gray-600 dark:text-gray-300">
-        Create interactive visualizations by adding windows. Each window runs Python code in your browser using WASM.
-      </div>
-
-      {windows.map((window, index) => (
-        <div key={window.id} className="border rounded-lg p-4 bg-white dark:bg-gray-800">
-          <h3 className="text-lg font-semibold mb-4">{window.title}</h3>
-          <PanelWindow
-            id={window.id}
-            title={window.title}
-            pythonCode={window.pythonCode}
-            initialPosition={{ x: 100 + index * 50, y: 100 + index * 50 }}
-          />
-        </div>
-      ))}
     </div>
-  );
-};
-
-const PanelTest = () => {
-  return (
-    <WindowProvider>
-      <PanelProvider>
-        <PanelTestContent />
-      </PanelProvider>
-    </WindowProvider>
   );
 };
 
