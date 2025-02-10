@@ -84,22 +84,19 @@ const PanelTest = () => {
     const python = `
 import numpy as np
 
+from pyodide.ffi import to_js
+
 # Create data
 x = np.linspace(0, 10, 1000)
 y = ${amplitude} * np.sin(2 * np.pi * ${frequency} * x + ${phase})
 
-# First convert numpy arrays to Python lists
-x_list = x.tolist()
-y_list = y.tolist()
-
-# Then create a plain Python dictionary
-result = {
-    'x': x_list,
-    'y': y_list
+# Manually construct a plain JavaScript object that can be cloned
+import json
+data = {
+    'x': x.tolist(),
+    'y': y.tolist()
 }
-
-# Return the dictionary
-result
+json.dumps(data)
     `;
 
     worker.postMessage({ python, id: Date.now() });

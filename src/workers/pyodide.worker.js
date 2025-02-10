@@ -12,20 +12,16 @@ self.onmessage = async (event) => {
     // Load numpy for calculations
     await pyodide.loadPackage(['numpy']);
     
-    // Make a Python dictionary with the data from context
-    const globals = pyodide.globals.get("dict")(Object.entries(context || {}));
+    // Convert context to Python dictionary
+    const globals = pyodide.toPy(context || {});
     
     // Execute the python code in this context
     let result = await pyodide.runPythonAsync(python, { globals });
     
-    // Convert result to JavaScript object
-    try {
-      result = result.toJs();
-    } catch (e) {
-      // If toJs() fails, try getting the object directly
-      result = result;
-    }
+    // Parse the JSON string into a plain JavaScript object
+    result = JSON.parse(result);
     
+    // Send the cloneable result back 
     self.postMessage({ result, id });
   } catch (error) {
     self.postMessage({ error: error.message, id });
