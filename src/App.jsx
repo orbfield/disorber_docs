@@ -1,4 +1,3 @@
-// App.jsx
 import React, { lazy, Suspense, useState, useEffect } from 'react';
 import { createHashRouter, RouterProvider } from 'react-router-dom';
 import Layout from './components/layout/Layout';
@@ -7,8 +6,8 @@ import { NavProvider } from './components/layout/Sidebar/NavContext';
 import { scanMediaDirectory } from './media/mediaScanner';
 
 const DynamicGalleryPage = lazy(() => import('./Pages/DynamicGallery'));
+const PyodideTestPage = lazy(() => import('./components/PyodideTest'));
 
-// Add timestamp to loading component for tracking mount/unmount
 const Loading = () => {
   return (
     <div className="flex items-center justify-center h-full">
@@ -22,12 +21,10 @@ const App = () => {
   const [mediaTree, setMediaTree] = useState(null);
 
   useEffect(() => {
-    
     const initApp = async () => {
       try {
         const mediaTreeData = await scanMediaDirectory();
         
-        // Add a top-level Gallery node to contain media items
         const navigationTree = [{
           id: 'gallery',
           text: 'Gallery',
@@ -56,6 +53,14 @@ const App = () => {
                   <DynamicGalleryPage />
                 </Suspense>
               )
+            },
+            {
+              path: "/pyodide-test",
+              element: (
+                <Suspense fallback={<Loading />}>
+                  <PyodideTestPage />
+                </Suspense>
+              )
             }
           ]
         }];
@@ -73,17 +78,15 @@ const App = () => {
         
         setRouter(newRouter);
       } catch (error) {
-        throw error; // Re-throw error to be caught by error boundary
+        throw error;
       }
     };
-
     initApp();
   }, []);
 
   if (!router || !mediaTree) {
     return <Loading />;
   }
-
   return <RouterProvider router={router} />;
 };
 

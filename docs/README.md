@@ -16,6 +16,13 @@
 - State management and hooks
 - Integration examples and best practices
 
+### 3. [HoloViz Integration](./holoviz-integration.md)
+- HoloViz ecosystem overview
+- Integration with React windows
+- High-performance visualization pipeline
+- Parameter handling and reactivity
+- WASM-based rendering architecture
+
 
 ## Key Features
 
@@ -36,11 +43,16 @@
    - Interactive windows
    - Responsive design
 
+4. Data Visualization
+   - HoloViz integration
+   - Real-time parameter updates
+   - High-performance rendering
+   - Browser-based computation
+
 ## Getting Started
 
 To understand the application architecture:
 
 1. Start with the [Gallery System Architecture](./gallery-system-architecture.md) for a high-level overview
 2. Review the [Window System](./window-system.md) for window management details
-
-
+3. Explore the [HoloViz Integration](./holoviz-integration.md) for visualization capabilities
