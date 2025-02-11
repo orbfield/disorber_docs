@@ -158,6 +158,7 @@ WindowContent.displayName = 'WindowContent';
  * @param {WindowProps} props
  */
 export const WindowWrapper = (props) => {
+  // Move all hooks to the top level
   const { 
     windows,
     registerWindow,
@@ -165,12 +166,14 @@ export const WindowWrapper = (props) => {
     bringToFront,
     toggleWindowVisibility
   } = useWindowContext();
+  
+  const { scale } = useZoom();
 
   // Get window data from context
   const windowData = windows[props.id];
+  
+  // Early return after all hooks have been called
   if (!windowData) return null;
-
-  const { scale } = useZoom();
 
   const handleDragEnd = (event) => {
     if (event.delta) {
