@@ -6,7 +6,7 @@
       "request": "launch",
       "name": "Launch Edge against localhost",
       "url": "http://localhost:3000",
-      "webRoot": "${workspaceFolder}",
+      "webRoot": "${workspaceFolder}/frontend",
       "sourceMaps": true,
       "sourceMapPathOverrides": {
         "webpack:///src/*": "${webRoot}/src/*"
@@ -17,7 +17,7 @@
       "request": "launch",
       "name": "Launch Edge against production",
       "url": "https://orbfield.github.io/disorber_docs",
-      "webRoot": "${workspaceFolder}/build",
+      "webRoot": "${workspaceFolder}/frontend/build",
       "sourceMaps": true,
       "sourceMapPathOverrides": {
         "webpack:///src/*": "${webRoot}/src/*"

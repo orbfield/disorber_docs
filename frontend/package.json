@@ -1,8 +1,8 @@
 {
-    "name": "disorber_docs",
+    "name": "disorber",
     "version": "1.0.0",
     "private": true,
-    "homepage": "https://orbfield.github.io/disorber_docs",
+    "homepage": "https://orbfield.github.io/disorber",
     "dependencies": {
         "@dnd-kit/core": "^6.3.1",
         "@dnd-kit/utilities": "^3.2.2",
