@@ -8,8 +8,6 @@ import { scanMediaDirectory } from './media/mediaScanner';
 
 const DynamicGalleryPage = lazy(() => import('./Pages/DynamicGallery'));
 
-const PanelTestPage = lazy(() => import('./Pages/PanelTest'));
-
 const Loading = () => {
   return (
     <div className="flex items-center justify-center h-full">
@@ -35,13 +33,7 @@ const App = () => {
             isExpanded: false,
             children: mediaTreeData,
             path: 'gallery'
-          },
-          {
-            id: 'panel',
-            text: 'Panel Test',
-            icon: 'Graph',
-            path: 'panel-test'
-          }
+          }        
         ];
         
         setMediaTree(navigationTree);
@@ -63,14 +55,6 @@ const App = () => {
               element: (
                 <Suspense fallback={<Loading />}>
                   <DynamicGalleryPage />
-                </Suspense>
-              )
-            },
-            {
-              path: "panel-test",
-              element: (
-                <Suspense fallback={<Loading />}>
-                  <PanelTestPage />
                 </Suspense>
               )
             }

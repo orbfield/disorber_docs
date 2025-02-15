@@ -1,0 +1,26 @@
+name: backend
+channels:
+  - conda-forge
+dependencies:
+  - python=3.10
+  # Django Stack
+  - django=5.0
+  - djangorestframework
+  - django-cors-headers
+  - django-environ
+  # Core HoloViz stack
+  - panel=1.6.0
+  - datashader
+  - param
+  - colorcet
+  # Data & Computation
+  - numpy
+  - pandas
+  # Build tools
+  - pyodide-build
+  # Development tools
+  - jupyter_bokeh
+  - ipykernel
+  - watchfiles
+  # Database
+  - psycopg2
