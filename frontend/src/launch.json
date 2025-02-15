@@ -10,7 +10,8 @@
       "sourceMaps": true,
       "sourceMapPathOverrides": {
         "webpack:///src/*": "${webRoot}/src/*"
-      }
+      },
+      "cwd": "${workspaceFolder}/frontend"
     },
     {
       "type": "msedge",
@@ -21,7 +22,8 @@
       "sourceMaps": true,
       "sourceMapPathOverrides": {
         "webpack:///src/*": "${webRoot}/src/*"
-      }
+      },
+      "cwd": "${workspaceFolder}/frontend"
     }
   ]
 }
