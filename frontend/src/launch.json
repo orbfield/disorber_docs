@@ -9,7 +9,7 @@
       "webRoot": "${workspaceFolder}/frontend",
       "sourceMaps": true,
       "sourceMapPathOverrides": {
-        "webpack:///src/*": "${webRoot}/src/*"
+        "webpack:///src/*": "${webRoot}/*"
       },
       "cwd": "${workspaceFolder}/frontend"
     },
@@ -21,7 +21,7 @@
       "webRoot": "${workspaceFolder}/frontend/build",
       "sourceMaps": true,
       "sourceMapPathOverrides": {
-        "webpack:///src/*": "${webRoot}/src/*"
+        "webpack:///src/*": "${webRoot}/*"
       },
       "cwd": "${workspaceFolder}/frontend"
     }
