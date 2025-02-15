@@ -39,7 +39,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./build  # Adjust this if your build output is in a different directory
+          path: ./frontend/build  # Adjust this if your build output is in a different directory
 
   deploy:
     environment:
