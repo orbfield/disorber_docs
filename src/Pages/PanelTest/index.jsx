@@ -1,54 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { WindowWrapper } from '../../components/window/wrapper';
 import { useWindowContext } from '../../components/window';
 import { Layout } from 'lucide-react';
-
-const PlotSVG = ({ data, width = 400, height = 300 }) => {
-  if (!data || !data.x || !data.y) return null;
-
-  const margin = { top: 20, right: 20, bottom: 30, left: 40 };
-  const innerWidth = width - margin.left - margin.right;
-  const innerHeight = height - margin.top - margin.bottom;
-
-  // Scale the data to fit the SVG
-  const xScale = (x) => (x - Math.min(...data.x)) / (Math.max(...data.x) - Math.min(...data.x)) * innerWidth;
-  const yScale = (y) => innerHeight - ((y - Math.min(...data.y)) / (Math.max(...data.y) - Math.min(...data.y)) * innerHeight);
-
-  // Create the path
-  const pathData = data.x.map((x, i) => {
-    return `${i === 0 ? 'M' : 'L'} ${xScale(x) + margin.left} ${yScale(data.y[i]) + margin.top}`;
-  }).join(' ');
-
-  return (
-    <svg width={width} height={height} className="bg-white dark:bg-gray-800 rounded-lg">
-      {/* Add axes */}
-      <line 
-        x1={margin.left} 
-        y1={height - margin.bottom} 
-        x2={width - margin.right} 
-        y2={height - margin.bottom} 
-        stroke="currentColor" 
-        className="text-gray-400"
-      />
-      <line 
-        x1={margin.left} 
-        y1={margin.top} 
-        x2={margin.left} 
-        y2={height - margin.bottom} 
-        stroke="currentColor" 
-        className="text-gray-400"
-      />
-      {/* Add the sine wave */}
-      <path
-        d={pathData}
-        stroke="currentColor"
-        strokeWidth="2"
-        fill="none"
-        className="text-blue-500 dark:text-blue-400"
-      />
-    </svg>
-  );
-};
 
 const PanelTest = () => {
   const [frequency, setFrequency] = useState(1.0);
@@ -61,94 +14,157 @@ const PanelTest = () => {
   const { toggleWindowVisibility, windows, registerWindow } = useWindowContext();
   const windowId = "panel-test";
 
-  // Handle window management
-  const handleOpenWindow = () => {
+  const generatePythonCode = (amplitude, frequency, phase) => `
+import numpy as np
+from bokeh.plotting import figure
+from bokeh.models import ColumnDataSource
+import panel as pn
+
+def update_plot(amplitude, frequency, phase):
+    x = np.linspace(0, 10, 1000)
+    y = amplitude * np.sin(2 * np.pi * frequency * x + phase)
+
+    p = figure(
+        width=600, 
+        height=400,
+        title='Interactive Sine Wave',
+        tools='pan,box_zoom,wheel_zoom,reset',
+        sizing_mode='stretch_both',
+        background_fill_color='#1a1a1a',
+        border_fill_color='#1a1a1a',
+        outline_line_color='#333333'
+    )
+
+    p.grid.grid_line_color = '#333333'
+    p.axis.axis_line_color = '#666666'
+    p.axis.major_tick_line_color = '#666666'
+    p.title.text_color = '#ffffff'
+    p.xaxis.axis_label_text_color = '#999999'
+    p.yaxis.axis_label_text_color = '#999999'
+
+    source = ColumnDataSource(data=dict(x=x, y=y))
+    p.line('x', 'y', source=source, line_width=2, line_color='#00a8e8')
+
+    title = pn.pane.Markdown('# Interactive Sine Wave Demo', styles={'color': '#ffffff'})
+    layout = pn.Column(
+        title,
+        p,
+        sizing_mode='stretch_both',
+        styles={'background-color': '#1a1a1a'}
+    )
+
+    return layout
+
+result = update_plot(${amplitude}, ${frequency}, ${phase})
+`;
+
+  // Add useEffect to automatically open the window on mount
+  useEffect(() => {
+    console.log('PanelTest component mounted');
+    handleOpenWindow();
+  }, []);
+
+  const handleOpenWindow = async () => {    
+    console.log('Handling window open');
     const existingWindow = windows[windowId];
     if (existingWindow && !existingWindow.isVisible) {
-      // If window exists but is hidden, just toggle visibility
+      console.log('Toggling existing window visibility');
       toggleWindowVisibility(windowId);
       return;
     }
     
     if (!isWindowActive) {
+      console.log('Creating new window');
       const width = 800;
       const height = 800;
-      // Position in viewport coordinates
       const x = Math.max(0, Math.random() * (window.innerWidth - width));
       const y = Math.max(0, Math.random() * (window.innerHeight - height));
       
       registerWindow(windowId, {
         x, y, width, height,
-        onClose: () => setIsWindowActive(false)
+        onClose: () => {
+          setIsWindowActive(false);
+          if (worker) {
+            worker.terminate();
+            setWorker(null);
+          }
+        }
       });
       
       setIsWindowActive(true);
+
+      try {
+        console.log('Initializing Pyodide worker');
+        const pyodideWorker = new Worker(new URL('../../workers/pyodide.worker.js', import.meta.url), { type: 'module' });
+        
+        pyodideWorker.onmessage = (event) => {
+          console.log('Received message from worker:', event.data);
+          const { result, error } = event.data;
+          if (error) {
+            console.error('Python Error:', error);
+            setError(error);
+          } else if (result) {
+            setPlotData(result);
+            setError(null);
+          }
+        };
+
+        pyodideWorker.onerror = (error) => {
+          console.error('Worker error:', error);
+          setError('Worker failed: ' + error.message);
+        };
+
+        setWorker(pyodideWorker);
+      } catch (error) {
+        console.error('Failed to initialize worker:', error);
+        setError('Failed to initialize Python environment: ' + error.message);
+      }
     }
   };
 
-  // Open window on mount
   useEffect(() => {
-    handleOpenWindow();
-  }, []);
-
-  // Initialize worker
-  useEffect(() => {
-    const pyodideWorker = new Worker(new URL('../../workers/pyodide.worker.js', import.meta.url));
-    
-    pyodideWorker.onmessage = (event) => {
-      const { result, error } = event.data;
-      if (error) {
-        console.error('Python Error:', error);
-        setError(error);
-      } else if (result) {
-        setPlotData(result);
-        setError(null);
+    return () => {
+      if (worker) {
+        worker.terminate();
       }
     };
+  }, [worker]);
 
-    setWorker(pyodideWorker);
+  const debouncedUpdate = useCallback(
+    (() => {
+      let timeoutId;
+      return (newValues) => {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+          if (!worker) return;
+          worker.postMessage({ 
+            python: generatePythonCode(
+              newValues.amplitude,
+              newValues.frequency,
+              newValues.phase
+            ),
+            id: Date.now()
+          });
+        }, 100);
+      };
+    })(),
+    [worker]
+  );
 
-    return () => {
-      pyodideWorker.terminate();
-    };
-  }, []);
-
-  // Function to update plot data
-  const updatePlot = async () => {
-    if (!worker) return;
-
-    const python = `
-import numpy as np
-
-from pyodide.ffi import to_js
-
-# Create data
-x = np.linspace(0, 10, 1000)
-y = ${amplitude} * np.sin(2 * np.pi * ${frequency} * x + ${phase})
-
-# Manually construct a plain JavaScript object that can be cloned
-import json
-data = {
-    'x': x.tolist(),
-    'y': y.tolist()
-}
-json.dumps(data)
-    `;
-
-    worker.postMessage({ python, id: Date.now() });
-  };
-
-  // Update plot when controls change and worker is ready
+  // Replace the useEffect with a simpler one that calls debouncedUpdate
   useEffect(() => {
-    if (worker) {
-      updatePlot();
-    }
-  }, [frequency, amplitude, phase, worker]);
+    debouncedUpdate({ frequency, amplitude, phase });
+  }, [frequency, amplitude, phase, debouncedUpdate]);
 
   return (
     <WindowWrapper
       id={windowId}
       className="bg-gray-800/70 backdrop-blur-lg border border-cyan-500/20 flex-lg shadow-lg"
+      initialPosition={{ 
+        x: Math.max(0, Math.random() * (window.innerWidth - 800)),
+        y: Math.max(0, Math.random() * (window.innerHeight - 800))
+      }}
+      defaultVisible={true}  // Make window visible by default
     >
       <div 
         data-window-header
@@ -161,71 +177,78 @@ json.dumps(data)
       </div>
       <div className="h-full bg-black/10">
         <div className="p-4 space-y-4">
-        
-        {error && (
-          <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">
-            Error: {error}
-          </div>
-        )}
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-full">
-          <div className="space-y-8">
-            <div>
-              <label className="block text-sm font-medium mb-2">Frequency</label>
-              <input
-                type="range"
-                min="0.1"
-                max="5.0"
-                step="0.1"
-                value={frequency}
-                onChange={(e) => setFrequency(parseFloat(e.target.value))}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
-              />
-              <span className="text-sm mt-1 block">{frequency.toFixed(1)} Hz</span>
+          {error && (
+            <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">
+              Error: {error}
             </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">Amplitude</label>
-              <input
-                type="range"
-                min="0.1"
-                max="2.0"
-                step="0.1"
-                value={amplitude}
-                onChange={(e) => setAmplitude(parseFloat(e.target.value))}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
-              />
-              <span className="text-sm mt-1 block">{amplitude.toFixed(1)}</span>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">Phase</label>
-              <input
-                type="range"
-                min="0"
-                max={2 * Math.PI}
-                step="0.1"
-                value={phase}
-                onChange={(e) => setPhase(parseFloat(e.target.value))}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
-              />
-              <span className="text-sm mt-1 block">{(phase / Math.PI).toFixed(2)}π rad</span>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-center p-4 bg-white dark:bg-gray-900 rounded-lg shadow-inner" style={{ minHeight: '500px' }}>
-            {plotData ? (
-              <PlotSVG data={plotData} width={600} height={400} />
-            ) : (
-              <div className="text-gray-500">
-                {worker ? 'Generating plot...' : 'Initializing Python...'}
+          )}
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-full">
+            <div className="space-y-8">
+              <div>
+                <label className="block text-sm font-medium mb-2">Frequency</label>
+                <input
+                  type="range"
+                  min="0.1"
+                  max="5.0"
+                  step="0.1"
+                  value={frequency}
+                  onChange={(e) => setFrequency(parseFloat(e.target.value))}
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+                />
+                <span className="text-sm mt-1 block">{frequency.toFixed(1)} Hz</span>
               </div>
-            )}
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Amplitude</label>
+                <input
+                  type="range"
+                  min="0.1"
+                  max="2.0"
+                  step="0.1"
+                  value={amplitude}
+                  onChange={(e) => setAmplitude(parseFloat(e.target.value))}
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+                />
+                <span className="text-sm mt-1 block">{amplitude.toFixed(1)}</span>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Phase</label>
+                <input
+                  type="range"
+                  min="0"
+                  max={2 * Math.PI}
+                  step="0.1"
+                  value={phase}
+                  onChange={(e) => setPhase(parseFloat(e.target.value))}
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+                />
+                <span className="text-sm mt-1 block">{(phase / Math.PI).toFixed(2)}π rad</span>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-center p-4 bg-white dark:bg-gray-900 rounded-lg shadow-inner" style={{ minHeight: '500px' }}>
+              {plotData ? (
+                <div 
+                  dangerouslySetInnerHTML={{ __html: plotData }} 
+                  className="w-full h-full"
+                  style={{ 
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center'
+                  }}
+                />
+              ) : (
+                <div className="text-gray-500">
+                  {worker ? 'Generating plot...' : 'Initializing Python...'}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  </WindowWrapper>
+    </WindowWrapper>
   );
 };
 

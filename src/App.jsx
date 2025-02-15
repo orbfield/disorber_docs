@@ -67,7 +67,7 @@ const App = () => {
               )
             },
             {
-              path: "/panel-test",
+              path: "panel-test",
               element: (
                 <Suspense fallback={<Loading />}>
                   <PanelTestPage />

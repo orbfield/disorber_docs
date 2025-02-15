@@ -8,58 +8,6 @@
     <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin" />
     <meta http-equiv="Cross-Origin-Embedder-Policy" content="require-corp" />
     <title>Disorber</title>
-
-    <!-- Preload Pyodide resources -->
-    <link 
-      rel="preload" 
-      href="https://cdn.jsdelivr.net/pyodide/v0.27.2/full/pyodide.asm.js" 
-      as="script" 
-      crossorigin="anonymous" 
-      type="text/javascript"
-    >
-    <link 
-      rel="preload" 
-      href="https://cdn.jsdelivr.net/pyodide/v0.27.2/full/pyodide.asm.wasm" 
-      as="fetch" 
-      crossorigin="anonymous" 
-      type="application/wasm"
-    >
-    
-    <!-- Pyodide initialization -->
-    <script>
-      // Configure loading timeout and error handling
-      window.pyodideLoadTimeout = setTimeout(() => {
-        console.error('Pyodide script load timeout');
-        document.dispatchEvent(new CustomEvent('pyodideLoadError', { 
-          detail: 'Script load timeout' 
-        }));
-      }, 30000);
-
-      // Handle successful load
-      window.onPyodideLoad = () => {
-        clearTimeout(window.pyodideLoadTimeout);
-        document.dispatchEvent(new CustomEvent('pyodideLoaded'));
-      };
-
-      // Handle load error
-      window.onPyodideError = (error) => {
-        clearTimeout(window.pyodideLoadTimeout);
-        console.error('Failed to load Pyodide:', error);
-        document.dispatchEvent(new CustomEvent('pyodideLoadError', { 
-          detail: error 
-        }));
-      };
-    </script>
-    
-    <!-- Load Pyodide -->
-    <script 
-      src="https://cdn.jsdelivr.net/pyodide/v0.27.2/full/pyodide.js" 
-      crossorigin="anonymous"
-      onload="window.onPyodideLoad()"
-      onerror="window.onPyodideError('Failed to load Pyodide script. Check your internet connection and try refreshing the page.')"
-      async
-    ></script>
-
   </head>
   <body>
     <div id="root"></div>
