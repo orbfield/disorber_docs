@@ -2,3 +2,6 @@ django==4.2.7
 djangorestframework==3.14.0
 django-cors-headers==4.3.0
 whitenoise==6.6.0
+panel==1.2.3
+holoviews==1.17.1
+bokeh==3.2.2

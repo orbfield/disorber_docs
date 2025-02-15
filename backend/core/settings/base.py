@@ -16,6 +16,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'corsheaders',
+    'channels',
+    'bokeh.server.django',
     'api',
 ]
 
@@ -65,3 +67,8 @@ TEMPLATES = [
         },
     },
 ]
+
+from bokeh.settings import bokehjsdir
+STATICFILES_DIRS = [bokehjsdir()]
+
+ASGI_APPLICATION = 'core.routing.application'

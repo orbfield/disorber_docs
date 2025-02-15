@@ -7,6 +7,7 @@ import { WindowProvider } from './components/window';
 import { scanMediaDirectory } from './media/mediaScanner';
 
 const DynamicGalleryPage = lazy(() => import('./Pages/DynamicGallery'));
+const PanelPage = lazy(() => import('./Pages/PanelPage'));
 
 const Loading = () => {
   return (
@@ -55,6 +56,14 @@ const App = () => {
               element: (
                 <Suspense fallback={<Loading />}>
                   <DynamicGalleryPage />
+                </Suspense>
+              )
+            },
+            {
+              path: "/panel/*",
+              element: (
+                <Suspense fallback={<Loading />}>
+                  <PanelPage />
                 </Suspense>
               )
             }

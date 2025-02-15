@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  django:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      - COMPUTE_SERVICE_URL=http://compute:8001
+    depends_on:
+      - compute
+
+  compute:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile.compute
+    ports:
+      - "8001:8001"
+    command: uvicorn compute.main:app --host 0.0.0.0 --port 8001
+    deploy:
+      replicas: 3  # Can scale horizontally
+      
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
+      - REACT_APP_COMPUTE_WS_URL=ws://localhost:8001
